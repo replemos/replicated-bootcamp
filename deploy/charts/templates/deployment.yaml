@@ -30,10 +30,8 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
-            - node_modules/.bin/ts-node
-            - --compiler-options
-            - '{"module":"CommonJS"}'
-            - prisma/seed.ts
+            - node
+            - prisma/seed.js
           envFrom:
             - secretRef:
                 name: {{ include "playball-exe.fullname" . }}
