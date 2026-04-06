@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { AsciiBoard } from '@/components/AsciiBoard'
@@ -19,15 +19,15 @@ export default function GamePage() {
     if (status === 'unauthenticated') router.push('/')
   }, [status, router])
 
-  useEffect(() => {
-    if (status === 'authenticated') loadCurrentGame()
-  }, [status])
-
-  async function loadCurrentGame() {
+  const loadCurrentGame = useCallback(async () => {
     const res = await fetch('/api/game/current')
     const data = await res.json()
     if (data?.id) setGameState(data)
-  }
+  }, [])
+
+  useEffect(() => {
+    if (status === 'authenticated') loadCurrentGame()
+  }, [status, loadCurrentGame])
 
   async function startGame() {
     setStarting(true)
