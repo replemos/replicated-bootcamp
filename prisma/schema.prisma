@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  franchiseName String
+  team          Team?
+  games         Game[]
+  playerSeasons PlayerSeason[]
+  createdAt     DateTime       @default(now())
+}
+
+model MlbTeam {
+  id        String      @id @default(cuid())
+  name      String      @unique
+  abbr      String      @unique
+  players   MlbPlayer[]
+  userTeams Team[]
+}
+
+model MlbPlayer {
+  id          String    @id @default(cuid())
+  mlbTeamId   String
+  mlbTeam     MlbTeam   @relation(fields: [mlbTeamId], references: [id])
+  name        String
+  position    String
+  number      Int
+  contact     Int       @default(5)
+  power       Int       @default(5)
+  speed       Int       @default(5)
+  pitching    Int       @default(5)
+  isPitcher   Boolean   @default(false)
+  lineupOrder Int?
+  players     Player[]
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  mlbTeamId String
+  mlbTeam   MlbTeam  @relation(fields: [mlbTeamId], references: [id])
+  players   Player[]
+}
+
+model Player {
+  id           String        @id @default(cuid())
+  teamId       String
+  team         Team          @relation(fields: [teamId], references: [id])
+  mlbPlayerId  String
+  mlbPlayer    MlbPlayer     @relation(fields: [mlbPlayerId], references: [id])
+  playerSeason PlayerSeason?
+
+  @@index([teamId])
+}
+
+model Game {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  inning            Int       @default(1)
+  halfInning        String    @default("bot")
+  outs              Int       @default(0)
+  homeScore         Int       @default(0)
+  awayScore         Int       @default(0)
+  runnersOnBase     Json      @default("{\"first\":null,\"second\":null,\"third\":null}")
+  lineupPosition    Int       @default(0)
+  cpuLineupPosition Int       @default(0)
+  gameLog           Json      @default("[]")
+  gameStats         Json      @default("{}")
+  cpuGameStats      Json      @default("{}")
+  status            String    @default("in_progress")
+  cpuTeamName       String
+  cpuTeamAbbr       String
+  cpuLineup         Json
+  cpuPitcher        Json
+  userPitcherId     String
+  result            String?
+  completedAt       DateTime?
+  createdAt         DateTime  @default(now())
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+model PlayerSeason {
+  id               String  @id @default(cuid())
+  playerId         String  @unique
+  player           Player  @relation(fields: [playerId], references: [id])
+  userId           String
+  user             User    @relation(fields: [userId], references: [id])
+  games            Int     @default(0)
+  atBats           Int     @default(0)
+  hits             Int     @default(0)
+  doubles          Int     @default(0)
+  triples          Int     @default(0)
+  homeRuns         Int     @default(0)
+  rbi              Int     @default(0)
+  walks            Int     @default(0)
+  strikeouts       Int     @default(0)
+  gamesStarted     Int     @default(0)
+  inningsPitched   Float   @default(0)
+  hitsAllowed      Int     @default(0)
+  walksAllowed     Int     @default(0)
+  strikeoutsThrown Int     @default(0)
+  earnedRuns       Int     @default(0)
+
+  @@index([userId])
+}
