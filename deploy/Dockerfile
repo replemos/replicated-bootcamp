@@ -31,6 +31,8 @@ RUN node_modules/.bin/tsc \
     --rootDir /app \
     --outDir /app/seed-dist \
     prisma/seed.ts
+# Write a plain-JS prisma config for the runner (no dotenv needed — DATABASE_URL comes from k8s secret)
+RUN printf 'const { defineConfig } = require("prisma/config");\nmodule.exports = defineConfig({ schema: "prisma/schema.prisma", migrations: { path: "prisma/migrations" }, datasource: { url: process.env.DATABASE_URL } });\n' > /app/prisma.config.js
 
 # Stage 4: production image
 FROM node:20-alpine AS runner
@@ -59,6 +61,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/src/generated ./src/generated
 # Pre-compiled seed script (replaces seed.ts — no ts-node needed)
 COPY --from=builder --chown=nextjs:nodejs /app/seed-dist/prisma/seed.js ./prisma/seed.js
 
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.js ./prisma.config.js
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
 USER nextjs
