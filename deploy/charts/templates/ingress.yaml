@@ -14,7 +14,7 @@ spec:
     {{- toYaml .Values.ingress.tls | nindent 4 }}
   {{- end }}
   rules:
-    - host: {{ .Values.ingress.hostname | quote }}
+    - host: {{ required "ingress.hostname is required when ingress.enabled=true" .Values.ingress.hostname | quote }}
       http:
         paths:
           - path: /

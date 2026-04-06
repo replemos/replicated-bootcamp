@@ -43,6 +43,6 @@ as they will contain the password in plaintext.
 {{- if .Values.postgresql.enabled -}}
 {{- printf "postgresql://%s:%s@%s:5432/%s" .Values.postgresql.auth.username .Values.postgresql.auth.password (include "playball-exe.postgresql.serviceName" .) .Values.postgresql.auth.database }}
 {{- else -}}
-{{- .Values.externalDatabase.url }}
+{{- required "externalDatabase.url is required when postgresql.enabled=false" .Values.externalDatabase.url }}
 {{- end }}
 {{- end }}
