@@ -35,59 +35,75 @@ function era(er: number, ip: number): string {
   return ((er * 9) / ip).toFixed(2)
 }
 
-export function AsciiStats({ teamName, franchiseName, batters, pitchers }: Props) {
+export function AsciiStats({ franchiseName, batters, pitchers }: Props) {
+  const W = 67
+  const row = (content: string) => `║${content.padEnd(W)}║`
+  const top    = `╔${'═'.repeat(W)}╗`
+  const mid    = `╠${'═'.repeat(W)}╣`
+  const bottom = `╚${'═'.repeat(W)}╝`
+
+  // Column widths: # POS G are right-aligned nums; NAME/POS label left-aligned
+  const batCol = (num: string, name: string, pos: string, g: string, ab: string, h: string, hr: string, rbi: string, avg: string) =>
+    `  ${num.padStart(3)}  ${name.padEnd(18)}  ${pos.padEnd(3)}  ${g.padStart(3)}  ${ab.padStart(4)}  ${h.padStart(4)}  ${hr.padStart(4)}  ${rbi.padStart(4)}  ${avg.padStart(4)}`
+
+  const pitCol = (num: string, name: string, pos: string, g: string, ip: string, h: string, bb: string, k: string, era: string) =>
+    `  ${num.padStart(3)}  ${name.padEnd(18)}  ${pos.padEnd(3)}  ${g.padStart(3)}  ${ip.padStart(4)}  ${h.padStart(4)}  ${bb.padStart(4)}  ${k.padStart(4)}  ${era.padStart(5)}`
+
+  const sep = `  ${'─'.repeat(64)}`
+
   const header = [
-    `╔═══════════════════════════════════════════════════════════════════╗`,
-    `║  ${franchiseName.toUpperCase().padEnd(65)}║`,
-    `║  ${teamName.padEnd(65)}║`,
-    `╠═══════════════════════════════════════════════════════════════════╣`,
-    `║  BATTING                                                          ║`,
-    `║  #    NAME                POS   G    AB    H   HR  RBI   AVG     ║`,
-    `║  ─────────────────────────────────────────────────────────────── ║`,
+    top,
+    row(`  ${franchiseName.toUpperCase()}`),
+    mid,
+    row(`  BATTING`),
+    row(batCol('#', 'NAME', 'POS', 'G', 'AB', 'H', 'HR', 'RBI', 'AVG')),
+    row(sep),
   ].join('\n')
 
   const batterRows = batters.map((b) => {
     const s = b.season
-    const g   = String(s?.games ?? 0).padStart(3)
-    const ab  = String(s?.atBats ?? 0).padStart(4)
-    const h   = String(s?.hits ?? 0).padStart(4)
-    const hr  = String(s?.homeRuns ?? 0).padStart(4)
-    const rbi = String(s?.rbi ?? 0).padStart(4)
-    const a   = avg(s?.hits ?? 0, s?.atBats ?? 0)
-    const num = String(b.number).padStart(3)
-    const name = b.name.slice(0, 18).padEnd(18)
-    const pos = b.position.padEnd(3)
-    return `║  ${num}  ${name}  ${pos}  ${g}  ${ab}  ${h}  ${hr}  ${rbi}  ${a}   ║`
+    return row(batCol(
+      String(b.number),
+      b.name.slice(0, 18),
+      (b.position || '').slice(0, 3),
+      String(s?.games ?? 0),
+      String(s?.atBats ?? 0),
+      String(s?.hits ?? 0),
+      String(s?.homeRuns ?? 0),
+      String(s?.rbi ?? 0),
+      avg(s?.hits ?? 0, s?.atBats ?? 0),
+    ))
   })
 
   const pitcherHeader = [
-    `╠═══════════════════════════════════════════════════════════════════╣`,
-    `║  PITCHING                                                         ║`,
-    `║  #    NAME                POS   G    IP    H   BB    K   ERA     ║`,
-    `║  ─────────────────────────────────────────────────────────────── ║`,
+    mid,
+    row(`  PITCHING`),
+    row(pitCol('#', 'NAME', 'POS', 'G', 'IP', 'H', 'BB', 'K', 'ERA')),
+    row(sep),
   ].join('\n')
 
   const pitcherRows = pitchers.map((p) => {
     const s = p.season
-    const g   = String(s?.gamesStarted ?? 0).padStart(3)
-    const ip  = String(s?.inningsPitched ?? 0).padStart(5)
-    const h   = String(s?.hitsAllowed ?? 0).padStart(4)
-    const bb  = String(s?.walksAllowed ?? 0).padStart(4)
-    const k   = String(s?.strikeoutsThrown ?? 0).padStart(4)
-    const e   = era(s?.earnedRuns ?? 0, s?.inningsPitched ?? 0)
-    const num = String(p.number).padStart(3)
-    const name = p.name.slice(0, 18).padEnd(18)
-    const pos = p.position.padEnd(3)
-    return `║  ${num}  ${name}  ${pos}  ${g}  ${ip}  ${h}  ${bb}  ${k}  ${e}  ║`
+    return row(pitCol(
+      String(p.number),
+      p.name.slice(0, 18),
+      (p.position || '').slice(0, 3),
+      String(s?.gamesStarted ?? 0),
+      String(s?.inningsPitched ?? 0),
+      String(s?.hitsAllowed ?? 0),
+      String(s?.walksAllowed ?? 0),
+      String(s?.strikeoutsThrown ?? 0),
+      era(s?.earnedRuns ?? 0, s?.inningsPitched ?? 0),
+    ))
   })
 
-  const footer = `╚═══════════════════════════════════════════════════════════════════╝`
+  const footer = bottom
 
   const board = [header, ...batterRows, pitcherHeader, ...pitcherRows, footer].join('\n')
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-start p-4 pt-8">
-      <pre className="font-mono text-green-400 text-sm leading-tight whitespace-pre overflow-x-auto">
+      <pre style={{ fontFamily: "'Courier New', Courier, monospace" }} className="text-green-400 text-sm leading-tight whitespace-pre overflow-x-auto">
         {board}
       </pre>
     </div>
