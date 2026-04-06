@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { AsciiBoard } from '@/components/AsciiBoard'
 import type { GameState } from '@/app/api/game/types'
@@ -13,6 +13,7 @@ export default function GamePage() {
   const [lastCpuLog, setLastCpuLog] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [starting, setStarting] = useState(false)
+  const [simulating, setSimulating] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -43,6 +44,20 @@ export default function GamePage() {
     setGameState(data)
   }
 
+  async function handleSimulate() {
+    setSimulating(true)
+    setError('')
+    const res = await fetch('/api/game/simulate', { method: 'POST' })
+    const data = await res.json()
+    setSimulating(false)
+    if (!res.ok) {
+      setError(data.error ?? 'Error simulating game')
+      return
+    }
+    setLastCpuLog([])
+    setGameState(data)
+  }
+
   async function handleAtBat() {
     if (!gameState) return
     setLoading(true)
@@ -69,7 +84,7 @@ export default function GamePage() {
   if (!gameState) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
-        <pre className="font-mono text-green-400 text-xl">{`⚾  BASEBALL DICE GAME  ⚾`}</pre>
+        <pre className="font-mono text-green-400 text-xl">{`⚾  PLAYBALL.EXE  ⚾`}</pre>
         {error && <pre className="font-mono text-red-400 text-sm">{error}</pre>}
         <button
           onClick={startGame}
@@ -82,7 +97,13 @@ export default function GamePage() {
           onClick={() => router.push('/stats')}
           className="font-mono text-xs text-green-600 hover:text-green-400"
         >
-          VIEW ROSTER + STATS →
+          VIEW ROSTER + STATS -&gt;
+        </button>
+        <button
+          onClick={() => signOut({ callbackUrl: '/' })}
+          className="font-mono text-xs text-green-600 hover:text-green-400"
+        >
+          LOGOUT
         </button>
       </div>
     )
@@ -90,22 +111,14 @@ export default function GamePage() {
 
   return (
     <div>
-      <AsciiBoard
-        state={gameState}
-        lastCpuLog={lastCpuLog}
-        onAtBat={handleAtBat}
-        loading={loading}
-      />
-      {error && (
-        <pre className="font-mono text-red-400 text-xs text-center">{error}</pre>
-      )}
-      <div className="flex justify-center gap-6 pb-4">
+      <div className="flex justify-between p-4">
         <button
           onClick={() => router.push('/stats')}
           className="font-mono text-xs text-green-600 hover:text-green-400"
         >
-          ROSTER / STATS
+          ROSTER / STATS -&gt;
         </button>
+        <div className="flex gap-4">
         {gameState.status === 'completed' && (
           <button
             onClick={() => { setGameState(null); setLastCpuLog([]) }}
@@ -114,7 +127,25 @@ export default function GamePage() {
             NEW GAME
           </button>
         )}
+        <button
+          onClick={() => signOut({ callbackUrl: '/' })}
+          className="font-mono text-xs text-green-600 hover:text-green-400"
+        >
+          LOGOUT
+        </button>
+        </div>
       </div>
+      <AsciiBoard
+        state={gameState}
+        lastCpuLog={lastCpuLog}
+        onAtBat={handleAtBat}
+        onSimulate={handleSimulate}
+        loading={loading}
+        simulating={simulating}
+      />
+      {error && (
+        <pre className="font-mono text-red-400 text-xs text-center">{error}</pre>
+      )}
     </div>
   )
 }

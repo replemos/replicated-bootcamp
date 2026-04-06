@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { AsciiStats } from '@/components/AsciiStats'
 
@@ -42,20 +42,26 @@ export default function StatsPage() {
 
   return (
     <div>
+      <div className="flex justify-between p-4">
+        <button
+          onClick={() => router.push('/game')}
+          className="font-mono text-xs text-green-600 hover:text-green-400"
+        >
+          &lt;- BACK TO GAME
+        </button>
+        <button
+          onClick={() => signOut({ callbackUrl: '/' })}
+          className="font-mono text-xs text-green-600 hover:text-green-400"
+        >
+          LOGOUT
+        </button>
+      </div>
       <AsciiStats
         teamName={roster.team.name}
         franchiseName={roster.team.franchiseName}
         batters={roster.batters}
         pitchers={roster.pitchers}
       />
-      <div className="flex justify-center pb-4">
-        <button
-          onClick={() => router.push('/game')}
-          className="font-mono text-xs text-green-600 hover:text-green-400"
-        >
-          ← BACK TO GAME
-        </button>
-      </div>
     </div>
   )
 }
