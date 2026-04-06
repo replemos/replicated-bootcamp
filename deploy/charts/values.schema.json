@@ -24,6 +24,56 @@
       "type": "integer",
       "minimum": 1
     },
+    "resources": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requests": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "cpu": { "type": "string" },
+            "memory": { "type": "string" }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "cpu": { "type": "string" },
+            "memory": { "type": "string" }
+          }
+        }
+      }
+    },
+    "initContainers": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "resources": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "requests": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "cpu": { "type": "string" },
+                "memory": { "type": "string" }
+              }
+            },
+            "limits": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "cpu": { "type": "string" },
+                "memory": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
     "service": {
       "type": "object",
       "additionalProperties": false,

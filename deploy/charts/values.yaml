@@ -6,6 +6,25 @@ image:
 
 replicaCount: 1
 
+# Resource requests and limits for the main app container
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# Resource requests and limits for init containers (migrate, seed)
+initContainers:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
 service:
   # ClusterIP | LoadBalancer | NodePort
   type: ClusterIP
