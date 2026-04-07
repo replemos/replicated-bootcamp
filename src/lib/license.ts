@@ -20,31 +20,36 @@ export async function checkLicense(): Promise<LicenseStatus> {
 
   const sdkUrl = process.env.REPLICATED_SDK_URL
   if (!sdkUrl) {
-    const status: LicenseStatus = { valid: false, reason: 'License service not configured' }
-    cache = { status, cachedAt: now }
-    return status
+    return { valid: false, reason: 'License service not configured' }
   }
 
   let status: LicenseStatus
   try {
     const res = await fetch(`${sdkUrl}/api/v1/license/info`)
     if (!res.ok) {
+      console.error('[license] SDK returned', res.status)
       status = { valid: false, reason: 'License service unreachable' }
     } else {
-      const data = await res.json()
-      const expiresAt: string = data?.entitlements?.expires_at?.value ?? ''
-      if (expiresAt && new Date(expiresAt) < new Date()) {
-        const formatted = new Date(expiresAt).toLocaleDateString('en-US', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })
-        status = { valid: false, reason: `License expired on ${formatted}` }
-      } else {
-        status = { valid: true }
+      try {
+        const data = await res.json() as { entitlements?: { expires_at?: { value?: string } } }
+        const expiresAt: string = data?.entitlements?.expires_at?.value ?? ''
+        if (expiresAt && new Date(expiresAt) < new Date()) {
+          const formatted = new Date(expiresAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          })
+          status = { valid: false, reason: `License expired on ${formatted}` }
+        } else {
+          status = { valid: true }
+        }
+      } catch {
+        console.error('[license] failed to parse license info response')
+        status = { valid: false, reason: 'License service unreachable' }
       }
     }
-  } catch {
+  } catch (err) {
+    console.error('[license] failed to fetch license info:', err)
     status = { valid: false, reason: 'License service unreachable' }
   }
 
