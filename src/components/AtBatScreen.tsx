@@ -91,7 +91,7 @@ export function AtBatScreen({ batter, lastRoll, onDone }: Props) {
 
   const board = [
     TOP,
-    row('      ⚾  PLATE APPEARANCE  ⚾'),
+    row('         PLATE APPEARANCE         '),
     MID,
     row(`  ${shortName} (#${batter.number} - ${batter.position})   vs   CPU Pitcher`),
     MID,
