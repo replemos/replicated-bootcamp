@@ -96,11 +96,9 @@ nextauth:
   secret: ""
   url: "http://localhost:3000"
 
-# Replicated SDK sidecar — provides licensing and telemetry APIs
-# nameOverride controls the Deployment/Service name (set to hide Replicated branding)
-sdk:
+# Replicated SDK — provides licensing and telemetry APIs
+replicated:
   enabled: true
-  nameOverride: playball-exe-sdk
   image:
     registry: images.emosbaugh.be
     repository: library/replicated-sdk-image
