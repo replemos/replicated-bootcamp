@@ -8,6 +8,14 @@ Use the [Replicated Compatibility Matrix (CMX)](https://docs.replicated.com/vend
 - `REPLICATED_API_TOKEN` set in your environment
 - `helm` and `kubectl` installed
 
+## Set Your License ID
+
+The Replicated SDK requires a license to start. Get a dev license ID from the [Vendor Portal](https://vendor.replicated.com) and export it once at the start of your session:
+
+```bash
+export REPLICATED_LICENSE_ID=<your-license-id>
+```
+
 ## Create a Cluster
 
 ```bash
@@ -33,10 +41,11 @@ To test local code changes without a CI build, push a throwaway image to [ttl.sh
 
 ```bash
 TAG=$(git rev-parse --short HEAD)
-docker build -f deploy/Dockerfile -t ttl.sh/playball-exe-${TAG}:2h .
+docker build -f deploy/Dockerfile --platform linux/amd64 -t ttl.sh/playball-exe-${TAG}:2h .
 docker push ttl.sh/playball-exe-${TAG}:2h
 ```
 
+> `--platform linux/amd64` is required — CMX clusters run on amd64, but Mac builds default to arm64.
 > Choose a TTL long enough to last your test session (`:1h`, `:2h`, `:6h`, `:24h`). The image is public but ephemeral — no credentials needed.
 
 Then pass the image coordinates when installing (see below).
@@ -47,15 +56,17 @@ Then pass the image coordinates when installing (see below).
 helm install playball deploy/charts \
   --set nextauth.secret="$(openssl rand -base64 32)" \
   --set service.type=NodePort \
+  --set sdk.integration.licenseID="${REPLICATED_LICENSE_ID}" \
   --wait --timeout 5m
 ```
 
-If you pushed a local image to ttl.sh, override the image:
+If you pushed a local image to ttl.sh, also override the image:
 
 ```bash
 helm install playball deploy/charts \
   --set nextauth.secret="$(openssl rand -base64 32)" \
   --set service.type=NodePort \
+  --set sdk.integration.licenseID="${REPLICATED_LICENSE_ID}" \
   --set image.repository=ttl.sh/playball-exe-${TAG} \
   --set image.tag=2h \
   --wait --timeout 5m
