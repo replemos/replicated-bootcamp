@@ -172,4 +172,18 @@ describe('updateSession', () => {
     const result = await adapter.updateSession!({ sessionToken: 'missing' })
     expect(result).toBeNull()
   })
+
+  it('preserves expires as a Date when not provided in update', async () => {
+    const existing = {
+      sessionToken: 'tok-1',
+      userId: 'user-1',
+      expires: new Date('2026-05-01').toISOString(),
+    }
+    mockRedis.get.mockResolvedValue(JSON.stringify(existing))
+    mockRedis.set.mockResolvedValue('OK')
+
+    const result = await adapter.updateSession!({ sessionToken: 'tok-1' })
+    expect(result).not.toBeNull()
+    expect(result!.expires).toBeInstanceOf(Date)
+  })
 })

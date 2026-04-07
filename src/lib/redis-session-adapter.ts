@@ -83,8 +83,12 @@ export function createRedisSessionAdapter(redis: MinimalRedis, prisma: MinimalPr
       const raw = await redis.get(key)
       if (!raw) return null
 
-      const existing = JSON.parse(raw) as AdapterSession
-      const updated: AdapterSession = { ...existing, ...session }
+      const stored = JSON.parse(raw) as Omit<AdapterSession, 'expires'> & { expires: string }
+      const updated: AdapterSession = {
+        ...stored,
+        expires: new Date(stored.expires),
+        ...session,
+      }
       await redis.set(key, JSON.stringify(updated), 'EX', SESSION_TTL_SECONDS)
       return updated
     },
