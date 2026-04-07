@@ -5,11 +5,14 @@ global:
 
 # Container image for the app (and migration init container)
 image:
-  repository: images.emosbaugh.be/proxy/playball-exe/index.docker.io/replemos/playball.exe
+  repository: images.emosbaugh.be/proxy/playball-exe/docker.io/replemos/playball.exe
   tag: main
   pullPolicy: Always
 
 replicaCount: 1
+
+# Pull secret for images.emosbaugh.be proxy registry (license ID as user/password)
+imagePullSecrets: []
 
 # Resource requests and limits for the main app container
 resources:
@@ -96,4 +99,4 @@ sdk:
   nameOverride: playball-exe-sdk
   image:
     registry: images.emosbaugh.be
-    repository: proxy/playball-exe/index.docker.io/replicated/replicated-sdk
+    repository: proxy/playball-exe/docker.io/replicated/replicated-sdk

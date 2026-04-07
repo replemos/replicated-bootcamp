@@ -247,6 +247,15 @@
     },
     "replicated-sdk": {
       "type": "object"
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" }
+        }
+      }
     }
   },
   "allOf": [
