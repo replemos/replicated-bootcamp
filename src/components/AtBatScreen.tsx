@@ -141,15 +141,20 @@ export function AtBatScreen({ batter, lastRoll, onDone }: Props) {
           const isLink = line.includes('[ ? ] outcome table')
           const color = isResult ? '#86efac' : isRolling && phase !== 'done' ? '#facc15' : '#4ade80'
           if (isLink) {
+            const linkText = '[ ? ] outcome table'
+            const linkIdx = line.indexOf(linkText)
+            const prefix = line.substring(0, linkIdx)
+            const suffix = line.substring(linkIdx + linkText.length)
             return (
               <span key={i} style={{ color: '#4ade80' }}>
-                {line.replace('[ ? ] outcome table', '')}
+                {prefix}
                 <span
                   style={{ color: '#60a5fa', textDecoration: 'underline', cursor: 'pointer' }}
                   onClick={() => setShowPopup(true)}
                 >
-                  [ ? ] outcome table
+                  {linkText}
                 </span>
+                {suffix}
                 {'\n'}
               </span>
             )
