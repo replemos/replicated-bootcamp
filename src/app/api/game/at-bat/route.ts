@@ -52,6 +52,14 @@ export async function POST(req: NextRequest) {
     )
     const outcome = atBatResult.outcome
 
+    const lastRoll = {
+      die1: atBatResult.die1,
+      die2: atBatResult.die2,
+      adjusted: atBatResult.adjusted,
+      net: atBatResult.net,
+      pitching: cpuPitcher.pitching,
+    }
+
     const currentBases = game.runnersOnBase as unknown as Bases
     const basesResult = advanceBases(outcome, currentBases, currentBatter.id)
     const playDesc = describePlay(mlp.name, outcome, basesResult.runsScored)
@@ -114,7 +122,7 @@ export async function POST(req: NextRequest) {
 
         await finalizeGame(game.id, userId)
         const state = await buildGameState(game.id, userId)
-        return NextResponse.json({ ...state, lastCpuLog: [] })
+        return NextResponse.json({ ...state, lastCpuLog: [], lastRoll })
       }
 
       // Run CPU top of new inning
@@ -160,7 +168,7 @@ export async function POST(req: NextRequest) {
         })
         await finalizeGame(game.id, userId)
         const state = await buildGameState(game.id, userId)
-        return NextResponse.json({ ...state, lastCpuLog })
+        return NextResponse.json({ ...state, lastCpuLog, lastRoll })
       }
 
       // Continue: bottom of new inning, user bats
@@ -195,7 +203,7 @@ export async function POST(req: NextRequest) {
     }
 
     const state = await buildGameState(game.id, userId)
-    return NextResponse.json({ ...state, lastCpuLog })
+    return NextResponse.json({ ...state, lastCpuLog, lastRoll })
   } catch (err) {
     console.error('[game/at-bat]', err)
     return NextResponse.json({ error: 'Failed to process at-bat' }, { status: 500 })
