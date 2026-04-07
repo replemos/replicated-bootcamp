@@ -69,8 +69,8 @@ or passed through from externalRedis.url.
 
 {{/*
 Replicated SDK service URL for custom metrics.
-Uses only the nameOverride, which is the Kubernetes service name created by the SDK subchart.
+Uses nameOverride, which sets the Kubernetes service name created by the SDK subchart.
 */}}
 {{- define "playball-exe.sdkUrl" -}}
-{{- printf "http://%s:3000" .Values.sdk.nameOverride }}
+{{- printf "http://%s:3000" .Values.replicated.nameOverride }}
 {{- end }}
