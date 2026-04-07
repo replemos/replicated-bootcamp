@@ -247,6 +247,9 @@
     },
     "replicated-sdk": {
       "type": "object"
+    },
+    "replicated": {
+      "type": "object"
     }
   },
   "allOf": [
