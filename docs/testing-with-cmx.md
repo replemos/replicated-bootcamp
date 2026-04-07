@@ -67,7 +67,7 @@ Then install:
 helm install playball deploy/charts \
   --set nextauth.secret="$(openssl rand -base64 32)" \
   --set service.type=NodePort \
-  --set sdk.integration.licenseID="${REPLICATED_LICENSE_ID}" \
+  --set replicated.integration.licenseID="${REPLICATED_LICENSE_ID}" \
   --set global.replicated.dockerconfigjson="${DOCKER_CONFIG}" \
   --wait --timeout 5m
 ```
@@ -78,7 +78,7 @@ If you pushed a local image to ttl.sh, also override the image:
 helm install playball deploy/charts \
   --set nextauth.secret="$(openssl rand -base64 32)" \
   --set service.type=NodePort \
-  --set sdk.integration.licenseID="${REPLICATED_LICENSE_ID}" \
+  --set replicated.integration.licenseID="${REPLICATED_LICENSE_ID}" \
   --set global.replicated.dockerconfigjson="${DOCKER_CONFIG}" \
   --set image.repository=ttl.sh/playball-exe-${TAG} \
   --set image.tag=2h \
