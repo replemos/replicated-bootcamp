@@ -7,18 +7,51 @@ on:
         description: Docker image tag to deploy
         required: true
         type: string
+      pr-number:
+        description: Pull request number
+        required: true
+        type: string
   workflow_dispatch:
     inputs:
       image-tag:
         description: Docker image tag to deploy
         required: true
         type: string
+      pr-number:
+        description: Pull request number
+        required: false
+        type: string
+        default: 'manual'
 
 jobs:
   e2e:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Package Helm chart
+        run: helm package deploy/charts -d /tmp --version "0.1.0-pr.${{ inputs.pr-number }}.${{ github.run_number }}"
+
+      - name: Create and promote Replicated release
+        id: create-release
+        uses: replicatedhq/replicated-actions/create-release@v1
+        with:
+          app-slug: playball-exe
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          chart: /tmp/playball-exe-0.1.0-pr.${{ inputs.pr-number }}.${{ github.run_number }}.tgz
+          promote-channel: pr-${{ inputs.pr-number }}
+          version: 0.1.0-pr.${{ inputs.pr-number }}.${{ github.run_number }}
+
+      - name: Create test customer
+        id: create-customer
+        uses: replicatedhq/replicated-actions/create-customer@v1
+        with:
+          app-slug: playball-exe
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          customer-name: ci-pr-${{ inputs.pr-number }}-${{ github.run_number }}
+          license-type: dev
+          channel-slug: ${{ steps.create-release.outputs.channel-slug }}
+          is-kots-install-enabled: "false"
 
       - name: Create CMX cluster
         id: create-cluster
@@ -31,14 +64,27 @@ jobs:
           ttl: 1h
           export-kubeconfig: "true"
 
-      - name: Install Helm chart
-        run: |
-          helm install playball deploy/charts \
-            --set nextauth.secret="$(openssl rand -base64 32)" \
-            --set service.type=NodePort \
-            --set image.tag=${{ inputs.image-tag }} \
-            --dependency-update \
-            --wait --timeout 10m
+      - name: Generate nextauth secret
+        run: echo "NEXTAUTH_SECRET=$(openssl rand -base64 32)" >> $GITHUB_ENV
+
+      - name: Install via Replicated registry
+        uses: replicatedhq/replicated-actions/helm-install@v1
+        with:
+          helm-path: helm
+          chart: oci://registry.replicated.com/playball-exe/${{ steps.create-release.outputs.channel-slug }}/playball-exe
+          version: 0.1.0-pr.${{ inputs.pr-number }}.${{ github.run_number }}
+          name: playball
+          namespace: default
+          kubeconfig: ${{ steps.create-cluster.outputs.cluster-kubeconfig }}
+          registry-username: ${{ steps.create-customer.outputs.license-id }}
+          registry-password: ${{ steps.create-customer.outputs.license-id }}
+          values: |
+            nextauth:
+              secret: "${{ env.NEXTAUTH_SECRET }}"
+            service:
+              type: NodePort
+            image:
+              tag: ${{ inputs.image-tag }}
 
       - name: Get NodePort
         id: get-nodeport
@@ -70,8 +116,23 @@ jobs:
           echo "$RESPONSE"
           echo "$RESPONSE" | jq -e '.success == true'
 
+      - name: Archive customer
+        if: always() && steps.create-customer.outcome != 'skipped'
+        uses: replicatedhq/replicated-actions/archive-customer@v1
+        with:
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          customer-id: ${{ steps.create-customer.outputs.customer-id }}
+
+      - name: Archive channel
+        if: always() && steps.create-release.outcome != 'skipped'
+        uses: replicatedhq/replicated-actions/archive-channel@v1
+        with:
+          app-slug: playball-exe
+          api-token: ${{ secrets.REPLICATED_API_TOKEN }}
+          channel-slug: ${{ steps.create-release.outputs.channel-slug }}
+
       - name: Delete cluster
-        if: always()
+        if: always() && steps.create-cluster.outcome != 'skipped'
         uses: replicatedhq/replicated-actions/remove-cluster@v1
         with:
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
