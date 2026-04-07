@@ -66,3 +66,11 @@ or passed through from externalRedis.url.
 {{- required "externalRedis.url is required when redis.enabled=false" .Values.externalRedis.url }}
 {{- end }}
 {{- end }}
+
+{{/*
+Replicated SDK service URL for custom metrics.
+Builds from release name + nameOverride to match the SDK subchart's service name.
+*/}}
+{{- define "playball-exe.sdkUrl" -}}
+{{- printf "http://%s-%s:3000" .Release.Name .Values.sdk.nameOverride }}
+{{- end }}
