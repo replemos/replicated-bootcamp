@@ -58,6 +58,6 @@ export function resolveAtBat(
     die1,
     die2,
     adjusted,
-    net: net || 0,
+    net,
   }
 }
