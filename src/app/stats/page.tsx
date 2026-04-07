@@ -41,7 +41,47 @@ export default function StatsPage() {
     }
   }, [status])
 
-  if (!roster || advancedStatsEnabled === null) {
+  if (advancedStatsEnabled === null) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <pre className="font-mono text-green-400">LOADING ROSTER...</pre>
+      </div>
+    )
+  }
+
+  if (!advancedStatsEnabled) {
+    return (
+      <div>
+        <div className="flex justify-between p-4">
+          <button
+            onClick={() => router.push('/game')}
+            className="font-mono text-xs text-green-600 hover:text-green-400"
+          >
+            &lt;- BACK TO GAME
+          </button>
+          <button
+            onClick={() => signOut({ callbackUrl: '/' })}
+            className="font-mono text-xs text-green-600 hover:text-green-400"
+          >
+            LOGOUT
+          </button>
+        </div>
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <pre className="font-mono text-green-400 text-center">{[
+            '╔══════════════════════════════════════╗',
+            '║      ADVANCED STATS: LOCKED          ║',
+            '║                                      ║',
+            '║  This feature requires an upgraded   ║',
+            '║  license. Contact your vendor to     ║',
+            '║  enable advanced stats.              ║',
+            '╚══════════════════════════════════════╝',
+          ].join('\n')}</pre>
+        </div>
+      </div>
+    )
+  }
+
+  if (!roster) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <pre className="font-mono text-green-400">LOADING ROSTER...</pre>
@@ -65,26 +105,12 @@ export default function StatsPage() {
           LOGOUT
         </button>
       </div>
-      {advancedStatsEnabled ? (
-        <AsciiStats
-          teamName={roster.team.name}
-          franchiseName={roster.team.franchiseName}
-          batters={roster.batters}
-          pitchers={roster.pitchers}
-        />
-      ) : (
-        <div className="min-h-screen bg-black flex items-center justify-center">
-          <pre className="font-mono text-green-400 text-center">{[
-            '╔══════════════════════════════════════╗',
-            '║      ADVANCED STATS: LOCKED          ║',
-            '║                                      ║',
-            '║  This feature requires an upgraded   ║',
-            '║  license. Contact your vendor to     ║',
-            '║  enable advanced stats.              ║',
-            '╚══════════════════════════════════════╝',
-          ].join('\n')}</pre>
-        </div>
-      )}
+      <AsciiStats
+        teamName={roster.team.name}
+        franchiseName={roster.team.franchiseName}
+        batters={roster.batters}
+        pitchers={roster.pitchers}
+      />
     </div>
   )
 }
