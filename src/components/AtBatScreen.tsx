@@ -60,11 +60,7 @@ export function AtBatScreen({ batter, lastRoll, onDone }: Props) {
       const t = setTimeout(() => setPhase('done'), 700)
       return () => clearTimeout(t)
     }
-    if (phase === 'done' && !showPopup) {
-      const t = setTimeout(onDone, 2000)
-      return () => clearTimeout(t)
-    }
-  }, [phase, onDone, showPopup])
+  }, [phase])
 
   const cb = contactBonus(batter.contact)
   const pb = powerBonus(batter.power)
@@ -162,6 +158,15 @@ export function AtBatScreen({ batter, lastRoll, onDone }: Props) {
           return <span key={i} style={{ color }}>{line}{'\n'}</span>
         })}
       </pre>
+
+      {phase === 'done' && (
+        <button
+          onClick={onDone}
+          className="font-mono text-black bg-green-400 hover:bg-green-300 px-8 py-3 text-sm tracking-widest mt-6"
+        >
+          CONTINUE
+        </button>
+      )}
 
       {showPopup && (
         <div
