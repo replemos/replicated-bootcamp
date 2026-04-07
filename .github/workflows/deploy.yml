@@ -24,19 +24,23 @@ jobs:
         id: vars
         run: |
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            VERSION="${{ github.ref_name }}"
-            VERSION="${VERSION#v}"
+            IMAGE_TAG="${{ github.ref_name }}"
+            VERSION="${IMAGE_TAG#v}"
             CHANNEL="Stable"
           else
             CALVER=$(date -u +"%Y.%-m.%-d")
             VERSION="${CALVER}-main.${{ github.run_number }}"
+            IMAGE_TAG="main"
             CHANNEL="Unstable"
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "image-tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
           echo "channel=$CHANNEL" >> $GITHUB_OUTPUT
 
       - name: Package Helm chart
-        run: helm package deploy/charts -d /tmp --version "${{ steps.vars.outputs.version }}"
+        run: |
+          sed -i "s/^  tag: .*/  tag: ${{ steps.vars.outputs.image-tag }}/" deploy/charts/values.yaml
+          helm package deploy/charts -d /tmp --version "${{ steps.vars.outputs.version }}"
 
       - name: Create and promote Replicated release
         uses: replicatedhq/replicated-actions/create-release@v1
