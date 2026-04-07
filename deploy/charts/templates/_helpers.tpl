@@ -69,8 +69,8 @@ or passed through from externalRedis.url.
 
 {{/*
 Replicated SDK service URL for custom metrics.
-Service name follows Helm convention: {release-name}-replicated
+Uses nameOverride, which sets the Kubernetes service name created by the SDK subchart.
 */}}
 {{- define "playball-exe.sdkUrl" -}}
-{{- printf "http://%s-replicated:3000" .Release.Name }}
+{{- printf "http://%s:3000" .Values.replicated.nameOverride }}
 {{- end }}
