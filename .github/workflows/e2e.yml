@@ -51,6 +51,7 @@ jobs:
           customer-name: ci-pr-${{ inputs.pr-number }}-${{ github.run_number }}
           license-type: dev
           channel-slug: ${{ steps.create-release.outputs.channel-slug }}
+          is-kots-install-enabled: "false"
 
       - name: Create CMX cluster
         id: create-cluster
