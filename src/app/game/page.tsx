@@ -4,13 +4,15 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { AsciiBoard } from '@/components/AsciiBoard'
+import { AtBatScreen } from '@/components/AtBatScreen'
 import type { GameState } from '@/app/api/game/types'
 
 export default function GamePage() {
-  const { data: session, status } = useSession()
+  const { status } = useSession()
   const router = useRouter()
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [lastCpuLog, setLastCpuLog] = useState<string[]>([])
+  const [lastRoll, setLastRoll] = useState<GameState['lastRoll']>(undefined)
   const [loading, setLoading] = useState(false)
   const [starting, setStarting] = useState(false)
   const [simulating, setSimulating] = useState(false)
@@ -61,17 +63,25 @@ export default function GamePage() {
   async function handleAtBat() {
     if (!gameState) return
     setLoading(true)
+    setLastRoll(undefined)
     setError('')
     const res = await fetch('/api/game/at-bat', { method: 'POST' })
     const data = await res.json()
-    setLoading(false)
     if (!res.ok) {
       setError(data.error ?? 'Error processing at-bat')
+      setLoading(false)
       return
     }
     setLastCpuLog(data.lastCpuLog ?? [])
     setGameState(data)
+    setLastRoll(data.lastRoll ?? undefined)
+    // Do NOT call setLoading(false) here — AtBatScreen calls onAtBatDone when animation completes
   }
+
+  const onAtBatDone = useCallback(() => {
+    setLoading(false)
+    setLastRoll(undefined)
+  }, [])
 
   if (status === 'loading') {
     return (
@@ -119,31 +129,41 @@ export default function GamePage() {
           ROSTER / STATS -&gt;
         </button>
         <div className="flex gap-4">
-        {gameState.status === 'completed' && (
+          {gameState.status === 'completed' && (
+            <button
+              onClick={() => { setGameState(null); setLastCpuLog([]) }}
+              className="font-mono text-xs text-green-600 hover:text-green-400"
+            >
+              NEW GAME
+            </button>
+          )}
           <button
-            onClick={() => { setGameState(null); setLastCpuLog([]) }}
+            onClick={() => signOut({ callbackUrl: '/' })}
             className="font-mono text-xs text-green-600 hover:text-green-400"
           >
-            NEW GAME
+            LOGOUT
           </button>
-        )}
-        <button
-          onClick={() => signOut({ callbackUrl: '/' })}
-          className="font-mono text-xs text-green-600 hover:text-green-400"
-        >
-          LOGOUT
-        </button>
         </div>
       </div>
-      <AsciiBoard
-        state={gameState}
-        lastCpuLog={lastCpuLog}
-        onAtBat={handleAtBat}
-        onSimulate={handleSimulate}
-        loading={loading}
-        simulating={simulating}
-      />
-      {error && (
+
+      {loading ? (
+        <AtBatScreen
+          batter={gameState.currentBatter}
+          lastRoll={lastRoll}
+          onDone={onAtBatDone}
+        />
+      ) : (
+        <AsciiBoard
+          state={gameState}
+          lastCpuLog={lastCpuLog}
+          onAtBat={handleAtBat}
+          onSimulate={handleSimulate}
+          loading={loading}
+          simulating={simulating}
+        />
+      )}
+
+      {error && !loading && (
         <pre className="font-mono text-red-400 text-xs text-center">{error}</pre>
       )}
     </div>
