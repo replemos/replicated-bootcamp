@@ -5,7 +5,7 @@ export async function GET() {
   if (!sdkUrl) return NextResponse.json([])
 
   try {
-    const res = await fetch(`${sdkUrl}/api/v1/app/updates`)
+    const res = await fetch(`${sdkUrl}/api/v1/app/updates`, { cache: 'no-store' })
     if (!res.ok) {
       console.error('[updates] SDK returned', res.status)
       return NextResponse.json([])
