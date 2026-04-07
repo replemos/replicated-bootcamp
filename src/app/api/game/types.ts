@@ -23,4 +23,11 @@ export interface GameState {
   userTeam: { name: string; abbr: string; franchiseName: string }
   cpuTeam: { name: string; abbr: string }
   lastCpuLog?: string[]
+  lastRoll?: {
+    die1: number
+    die2: number
+    adjusted: number
+    net: number
+    pitching: number
+  }
 }
