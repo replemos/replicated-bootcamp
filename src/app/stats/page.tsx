@@ -21,6 +21,7 @@ export default function StatsPage() {
   const { status } = useSession()
   const router = useRouter()
   const [roster, setRoster] = useState<RosterData | null>(null)
+  const [advancedStatsEnabled, setAdvancedStatsEnabled] = useState<boolean | null>(null)
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/')
@@ -28,11 +29,17 @@ export default function StatsPage() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      fetch('/api/roster').then((r) => r.json()).then(setRoster)
+      Promise.all([
+        fetch('/api/roster').then((r) => r.json()),
+        fetch('/api/license/fields/advanced_stats_enabled').then((r) => r.json()),
+      ]).then(([rosterData, { enabled }]) => {
+        setRoster(rosterData)
+        setAdvancedStatsEnabled(enabled)
+      })
     }
   }, [status])
 
-  if (!roster) {
+  if (!roster || advancedStatsEnabled === null) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <pre className="font-mono text-green-400">LOADING ROSTER...</pre>
@@ -56,12 +63,26 @@ export default function StatsPage() {
           LOGOUT
         </button>
       </div>
-      <AsciiStats
-        teamName={roster.team.name}
-        franchiseName={roster.team.franchiseName}
-        batters={roster.batters}
-        pitchers={roster.pitchers}
-      />
+      {advancedStatsEnabled ? (
+        <AsciiStats
+          teamName={roster.team.name}
+          franchiseName={roster.team.franchiseName}
+          batters={roster.batters}
+          pitchers={roster.pitchers}
+        />
+      ) : (
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <pre className="font-mono text-green-400 text-center">{[
+            '╔══════════════════════════════════════╗',
+            '║      ADVANCED STATS: LOCKED          ║',
+            '║                                      ║',
+            '║  This feature requires an upgraded   ║',
+            '║  license. Contact your vendor to     ║',
+            '║  enable advanced stats.              ║',
+            '╚══════════════════════════════════════╝',
+          ].join('\n')}</pre>
+        </div>
+      )}
     </div>
   )
 }
