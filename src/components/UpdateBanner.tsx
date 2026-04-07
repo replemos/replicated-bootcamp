@@ -14,9 +14,12 @@ export function UpdateBanner() {
     async function checkForUpdates() {
       try {
         const res = await fetch('/api/updates')
+        if (!res.ok) return
         const data: Update[] = await res.json()
         if (data.length > 0) {
           setUpdate(data[0])
+        } else {
+          setUpdate(null)
         }
       } catch {
         // preserve current banner state on transient failures
