@@ -2,6 +2,9 @@ global:
   # Required when proxying Bitnami images through a non-official registry
   security:
     allowInsecureImages: true
+  # Propagates to all Bitnami subcharts (postgresql, redis)
+  imagePullSecrets:
+    - enterprise-pull-secret
 
 # Container image for the app (and migration init container)
 image:
