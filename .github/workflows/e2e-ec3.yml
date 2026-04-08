@@ -168,6 +168,38 @@ jobs:
                --installer-password '${INSTALLER_PASSWORD}' \
                --config-values /tmp/config-values.yaml"
 
+      - name: Collect support bundle
+        id: collect-support-bundle
+        if: always() && steps.create-vm.outcome == 'success'
+        continue-on-error: true
+        run: |
+          VM_ID="${{ steps.create-vm.outputs.vm-id }}"
+          SSH_ENDPOINT=$(replicated vm ssh-endpoint "$VM_ID" \
+            --username ci \
+            --token ${{ secrets.REPLICATED_API_TOKEN }})
+          SSH_HOST=$(echo "$SSH_ENDPOINT" | sed 's|[a-z]*://[^@]*@||' | cut -d: -f1)
+          SSH_PORT=$(echo "$SSH_ENDPOINT" | cut -d: -f3)
+          ssh -i .ssh/id_ed25519 \
+            -p "$SSH_PORT" \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            "ci@$SSH_HOST" \
+            "sudo playball-exe support-bundle --output /tmp/support-bundle.tar.gz"
+          scp -i .ssh/id_ed25519 \
+            -P "$SSH_PORT" \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            "ci@${SSH_HOST}:/tmp/support-bundle.tar.gz" \
+            ./support-bundle.tar.gz
+
+      - name: Upload support bundle artifact
+        if: always() && steps.collect-support-bundle.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: support-bundle-pr-${{ inputs.pr-number }}-${{ github.run_number }}
+          path: support-bundle.tar.gz
+          if-no-files-found: warn
+
       - name: Archive customer
         if: always() && steps.create-customer.outcome != 'skipped'
         uses: replicatedhq/replicated-actions/archive-customer@v1
