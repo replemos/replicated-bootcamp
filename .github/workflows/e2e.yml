@@ -31,7 +31,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Package Helm chart
-        run: helm package deploy/charts -d /tmp --version "0.1.0-pr.${{ inputs.pr-number }}.${{ github.run_number }}"
+        run: helm package deploy/charts -d deploy/manifests --version "0.1.0-pr.${{ inputs.pr-number }}.${{ github.run_number }}"
 
       - name: Create and promote Replicated release
         id: create-release
@@ -39,7 +39,7 @@ jobs:
         with:
           app-slug: playball-exe
           api-token: ${{ secrets.REPLICATED_API_TOKEN }}
-          chart: /tmp/playball-exe-0.1.0-pr.${{ inputs.pr-number }}.${{ github.run_number }}.tgz
+          yaml-dir: deploy/manifests
           promote-channel: pr-${{ inputs.pr-number }}
           version: 0.1.0-pr.${{ inputs.pr-number }}.${{ github.run_number }}
 
@@ -76,7 +76,7 @@ jobs:
 
       - name: Run preflight checks
         run: |
-          helm template /tmp/playball-exe-0.1.0-pr.${{ inputs.pr-number }}.${{ github.run_number }}.tgz \
+          helm template deploy/manifests/playball-exe-0.1.0-pr.${{ inputs.pr-number }}.${{ github.run_number }}.tgz \
             --set nextauth.secret=test \
             | preflight --interactive=false -
 
