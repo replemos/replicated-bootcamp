@@ -62,6 +62,9 @@ Two groups exposing PostgreSQL and Redis configuration. Each has a boolean toggl
 
 Password type is used (not text) because connection strings contain credentials — KOTS encrypts and masks password fields. The `when` property hides the URL field when bundled is selected.
 
+**Secrets group:**
+- `nextauth_secret` — type: password, `hidden: true`, `readonly: false`, `value: '{{repl RandomString 32}}'` — auto-generated once on install, persists across config changes, never shown to users. Maps to `nextauth.secret`.
+
 ### `helmchart.yaml`
 
 HelmChart v2 (`kots.io/v1beta2`) pointing at the existing chart. Maps KOTS config options to Helm values via template functions:
@@ -81,6 +84,8 @@ spec:
       enabled: 'repl{{ ConfigOptionEquals "redis_enabled" "1" }}'
     externalRedis:
       url: 'repl{{ ConfigOption "external_redis_url" }}'
+    nextauth:
+      secret: 'repl{{ ConfigOption "nextauth_secret" }}'
 ```
 
 ## Release Process
