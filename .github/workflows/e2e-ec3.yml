@@ -66,8 +66,14 @@ jobs:
             --app playball-exe \
             --output json \
             --token ${{ secrets.REPLICATED_API_TOKEN }})
-          echo "customer-id=$(echo "$CUSTOMER_JSON" | jq -r '.id')" >> $GITHUB_OUTPUT
-          echo "license-id=$(echo "$CUSTOMER_JSON" | jq -r '.licenseId // .id')" >> $GITHUB_OUTPUT
+          CUSTOMER_ID=$(echo "$CUSTOMER_JSON" | jq -r '.id')
+          echo "customer-id=$CUSTOMER_ID" >> $GITHUB_OUTPUT
+          LICENSE_ID=$(replicated customer download-license \
+            --customer "$CUSTOMER_ID" \
+            --app playball-exe \
+            --token ${{ secrets.REPLICATED_API_TOKEN }} \
+            | grep 'licenseID:' | awk '{print $2}' | tr -d '"')
+          echo "license-id=$LICENSE_ID" >> $GITHUB_OUTPUT
 
       - name: Generate SSH keypair
         run: |
