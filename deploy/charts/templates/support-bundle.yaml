@@ -126,12 +126,13 @@ stringData:
         - nodeResources:
             checkName: All nodes are ready
             filters:
-              condition: Ready
-              conditionStatus: "False"
+              conditions:
+                - type: Ready
+                  status: "True"
             outcomes:
               - fail:
-                  when: "count() > 0"
-                  message: "One or more nodes are not Ready. Pods cannot be scheduled on unhealthy nodes, which may prevent the application from starting. Check node conditions with: kubectl get nodes"
-              - pass:
                   when: "count() == 0"
+                  message: "No nodes are Ready. Pods cannot be scheduled, which will prevent the application from starting. Check node conditions with: kubectl get nodes"
+              - pass:
+                  when: "count() > 0"
                   message: All nodes are Ready.
