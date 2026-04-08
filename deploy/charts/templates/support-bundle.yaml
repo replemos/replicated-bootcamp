@@ -52,7 +52,7 @@ stringData:
         - textAnalyze:
             checkName: "License Expiry Warning"
             fileName: app/**/*.log
-            regex: '\[license\] warning: expires in'
+            regex: '\[license\] warning: expires in \d+ days'
             outcomes:
               - fail:
                   when: "true"
@@ -61,4 +61,4 @@ stringData:
                     to avoid service interruption: https://vendor.replicated.com
               - pass:
                   when: "false"
-                  message: "License is not approaching expiry."
+                  message: "License expiry is not within 7 days."
