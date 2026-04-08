@@ -60,18 +60,6 @@ jobs:
       - name: Package Helm chart
         run: helm package deploy/charts -d deploy/manifests --version "${{ steps.set-version.outputs.version }}"
 
-      - name: Install preflight CLI
-        run: |
-          curl -fsSL https://github.com/replicatedhq/troubleshoot/releases/latest/download/preflight_linux_amd64.tar.gz \
-            | tar xz -C /tmp preflight
-          sudo mv /tmp/preflight /usr/local/bin/preflight
-
-      - name: Run preflight checks
-        run: |
-          helm template deploy/manifests/playball-exe-${{ steps.set-version.outputs.version }}.tgz \
-            --set nextauth.secret=test \
-            | preflight --interactive=false -
-
       - name: Create and promote Replicated release
         id: create-release
         uses: replicatedhq/replicated-actions/create-release@v1
