@@ -48,3 +48,19 @@ stringData:
             limits:
               maxAge: "720h"
               maxLines: 10000
+        - http:
+            name: app-healthz
+            get:
+              url: http://{{ include "playball-exe.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}/api/healthz
+      analyzers:
+        - textAnalyze:
+            checkName: App Health
+            fileName: http/app-healthz/response.json
+            regex: '"status":"ok"'
+            outcomes:
+              - pass:
+                  when: "true"
+                  message: Application is healthy
+              - fail:
+                  when: "false"
+                  message: Application is not healthy
