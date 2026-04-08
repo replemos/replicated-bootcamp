@@ -94,7 +94,7 @@ EOF
 ```bash
 USERNAME=$(cut -d' ' -f3 .ssh/id_ed25519.pub | cut -d'@' -f1)
 SCP_ENDPOINT=$(replicated vm scp-endpoint <vm-id> --username "$USERNAME" --token $REPLICATED_API_TOKEN)
-SCP_HOST=$(echo "$SCP_ENDPOINT" | sed 's|ssh://[^@]*@||' | cut -d: -f1)
+SCP_HOST=$(echo "$SCP_ENDPOINT" | sed 's|[a-z]*://[^@]*@||' | cut -d: -f1)
 SCP_PORT=$(echo "$SCP_ENDPOINT" | cut -d: -f3)
 
 scp -i .ssh/id_ed25519 \
@@ -109,7 +109,7 @@ scp -i .ssh/id_ed25519 \
 
 ```bash
 SSH_ENDPOINT=$(replicated vm ssh-endpoint <vm-id> --username "$USERNAME" --token $REPLICATED_API_TOKEN)
-SSH_HOST=$(echo "$SSH_ENDPOINT" | sed 's|ssh://[^@]*@||' | cut -d: -f1)
+SSH_HOST=$(echo "$SSH_ENDPOINT" | sed 's|[a-z]*://[^@]*@||' | cut -d: -f1)
 SSH_PORT=$(echo "$SSH_ENDPOINT" | cut -d: -f3)
 
 ssh -i .ssh/id_ed25519 \
