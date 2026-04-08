@@ -60,6 +60,7 @@ jobs:
       - name: Package Helm chart
         run: |
           VERSION="${{ steps.set-version.outputs.version }}"
+          sed -i "s/^  tag: .*/  tag: pr-${{ github.event.pull_request.number }}/" deploy/charts/values.yaml
           sed -i "s/chartVersion: .*/chartVersion: $VERSION/" deploy/manifests/helmchart.yaml
           helm package deploy/charts -d deploy/manifests --version "$VERSION"
 
