@@ -79,8 +79,6 @@ jobs:
           helm template /tmp/playball-exe-0.1.0-pr.${{ inputs.pr-number }}.${{ github.run_number }}.tgz \
             --set nextauth.secret=test \
             | preflight --interactive=false -
-        env:
-          KUBECONFIG: ${{ steps.create-cluster.outputs.cluster-kubeconfig }}
 
       - name: Install via Replicated registry
         uses: replicatedhq/replicated-actions/helm-install@v1
