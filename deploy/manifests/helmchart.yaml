@@ -15,7 +15,7 @@ spec:
     redis:
       enabled: repl{{ ConfigOptionEquals "redis_enabled" "1" }}
       replica:
-        replicaCount: 0
+        replicaCount: 1
     externalRedis:
       url: 'repl{{ ConfigOption "external_redis_url" }}'
     nextauth:
