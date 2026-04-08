@@ -1,8 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { POST } from './route'
 
-beforeEach(() => {
+vi.mock('next-auth', () => ({
+  getServerSession: vi.fn(),
+}))
+vi.mock('@/lib/auth', () => ({ authOptions: {} }))
+
+beforeEach(async () => {
   vi.stubEnv('REPLICATED_SDK_URL', 'http://replicated:3000')
+  const { getServerSession } = await import('next-auth')
+  vi.mocked(getServerSession).mockResolvedValue({ user: { id: 'user-1' } } as any)
 })
 
 afterEach(() => {
@@ -11,6 +18,14 @@ afterEach(() => {
 })
 
 describe('POST /api/support-bundle', () => {
+  it('returns 401 when not authenticated', async () => {
+    const { getServerSession } = await import('next-auth')
+    vi.mocked(getServerSession).mockResolvedValue(null)
+    const res = await POST()
+    expect(res.status).toBe(401)
+    const body = await res.json()
+    expect(body).toEqual({ error: 'Unauthorized' })
+  })
   it('returns 503 when REPLICATED_SDK_URL is not set', async () => {
     vi.unstubAllEnvs()
     const res = await POST()

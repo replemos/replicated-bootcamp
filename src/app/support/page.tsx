@@ -16,6 +16,14 @@ export default function SupportPage() {
     if (status === 'unauthenticated') router.push('/')
   }, [status, router])
 
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <pre className="font-mono text-green-400">LOADING...</pre>
+      </div>
+    )
+  }
+
   async function handleGenerateBundle() {
     setBundleStatus('loading')
     setErrorMessage('')
