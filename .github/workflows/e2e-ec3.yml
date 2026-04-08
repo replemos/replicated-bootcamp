@@ -103,17 +103,17 @@ jobs:
           done
 
       - name: Write config-values.yaml
-        run: |
-          cat > /tmp/config-values.yaml <<'EOF'
-apiVersion: kots.io/v1beta1
-kind: ConfigValues
-spec:
-  values:
-    postgresql_enabled:
-      value: "1"
-    redis_enabled:
-      value: "1"
-EOF
+        env:
+          CONFIG_VALUES: |
+            apiVersion: kots.io/v1beta1
+            kind: ConfigValues
+            spec:
+              values:
+                postgresql_enabled:
+                  value: "1"
+                redis_enabled:
+                  value: "1"
+        run: echo "$CONFIG_VALUES" > /tmp/config-values.yaml
 
       - name: SCP config-values.yaml to VM
         run: |
