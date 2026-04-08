@@ -5,19 +5,13 @@ A web-based baseball management game built with Next.js, Prisma, and PostgreSQL.
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) (v20+)
-- [Docker](https://www.docker.com/) (for PostgreSQL)
+- [Docker](https://www.docker.com/) (required by k3d)
 
 ## Getting Started
 
 ### 1. Start infrastructure
 
-For full local development with the Replicated SDK, use k3d — see [Testing Locally with k3d](docs/testing-locally.md) for setup instructions.
-
-For quick development without the SDK (no license required):
-
-```bash
-docker compose up -d
-```
+Use k3d to run postgres, redis, and the Replicated SDK locally — see [Testing Locally with k3d](docs/testing-locally.md) for setup instructions.
 
 ### 2. Set up environment variables
 
