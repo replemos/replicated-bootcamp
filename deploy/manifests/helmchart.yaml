@@ -9,11 +9,11 @@ spec:
   releaseName: playball-exe
   values:
     postgresql:
-      enabled: 'repl{{ ConfigOptionEquals "postgresql_enabled" "1" }}'
+      enabled: repl{{ ConfigOptionEquals "postgresql_enabled" "1" }}
     externalDatabase:
       url: 'repl{{ ConfigOption "external_postgres_url" }}'
     redis:
-      enabled: 'repl{{ ConfigOptionEquals "redis_enabled" "1" }}'
+      enabled: repl{{ ConfigOptionEquals "redis_enabled" "1" }}
     externalRedis:
       url: 'repl{{ ConfigOption "external_redis_url" }}'
     nextauth:
