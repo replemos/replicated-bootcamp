@@ -114,3 +114,24 @@ stringData:
               - pass:
                   when: ">= 1"
                   message: Redis replicas are running.
+        - storageClass:
+            checkName: Default storage class
+            outcomes:
+              - fail:
+                  when: "== 0"
+                  message: No default storage class is available. The application requires a default storage class to provision persistent volumes. Please configure a default storage class in your cluster before installing.
+              - pass:
+                  when: ">= 1"
+                  message: A default storage class is available.
+        - nodeResources:
+            checkName: All nodes are ready
+            filters:
+              condition: Ready
+              conditionStatus: "False"
+            outcomes:
+              - fail:
+                  when: "count() > 0"
+                  message: "One or more nodes are not Ready. Pods cannot be scheduled on unhealthy nodes, which may prevent the application from starting. Check node conditions with: kubectl get nodes"
+              - pass:
+                  when: "count() == 0"
+                  message: All nodes are Ready.
