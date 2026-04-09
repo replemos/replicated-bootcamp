@@ -25,7 +25,14 @@ jobs:
       - run: npm test
 
       - name: Helm lint
-        run: helm lint deploy/charts --set nextauth.secret=test
+        run: |
+          helm lint deploy/charts --set nextauth.secret=test
+          helm lint deploy/charts \
+            --set nextauth.secret=test \
+            --set nextauth.url=https://example.com \
+            --set ingress.enabled=true \
+            --set ingress.hostname=example.com \
+            --set ingress.className=traefik
 
       - name: Install Replicated CLI
         run: |
@@ -63,6 +70,10 @@ jobs:
           sed -i "s/^  tag: .*/  tag: pr-${{ github.event.pull_request.number }}/" deploy/charts/values.yaml
           sed -i "s/chartVersion: .*/chartVersion: $VERSION/" deploy/manifests/helmchart.yaml
           helm package deploy/charts -d deploy/manifests --version "$VERSION"
+          helm repo add traefik https://helm.traefik.io/traefik
+          helm pull traefik/traefik --version 39.0.7 -d deploy/manifests
+          helm repo add jetstack https://charts.jetstack.io
+          helm pull jetstack/cert-manager --version v1.17.2 -d deploy/manifests
 
       - name: Create and promote Replicated release
         id: create-release

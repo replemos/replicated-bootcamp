@@ -1,0 +1,10 @@
+apiVersion: kots.io/v1beta1
+kind: ConfigValues
+spec:
+  values:
+    postgresql_enabled:
+      value: "1"
+    redis_enabled:
+      value: "1"
+    hostname:
+      value: "playball.example.com"
