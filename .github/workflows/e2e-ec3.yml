@@ -122,6 +122,8 @@ jobs:
                   value: "1"
                 redis_enabled:
                   value: "1"
+                hostname:
+                  value: "test.playball.example.com"
         run: echo "$CONFIG_VALUES" > /tmp/config-values.yaml
 
       - name: SCP config-values.yaml to VM
@@ -167,6 +169,34 @@ jobs:
                --yes \
                --installer-password '${INSTALLER_PASSWORD}' \
                --config-values /tmp/config-values.yaml"
+
+      - name: Validate HTTPS
+        run: |
+          VM_ID="${{ steps.create-vm.outputs.vm-id }}"
+          SSH_ENDPOINT=$(replicated vm ssh-endpoint "$VM_ID" \
+            --username ci \
+            --token ${{ secrets.REPLICATED_API_TOKEN }})
+          SSH_HOST=$(echo "$SSH_ENDPOINT" | sed 's|[a-z]*://[^@]*@||' | cut -d: -f1)
+          SSH_PORT=$(echo "$SSH_ENDPOINT" | cut -d: -f3)
+          ssh -i .ssh/id_ed25519 \
+            -p "$SSH_PORT" \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=60 \
+            "ci@$SSH_HOST" \
+            'HTTP_STATUS=$(curl -so /dev/null -w "%{http_code}" \
+               -H "Host: test.playball.example.com" http://10.0.0.11:80/) && \
+             ([ "$HTTP_STATUS" = "301" ] || [ "$HTTP_STATUS" = "308" ]) || \
+               { echo "Expected HTTP redirect, got $HTTP_STATUS"; exit 1; } && \
+             for i in $(seq 1 10); do \
+               HTTPS_STATUS=$(curl -sko /dev/null -w "%{http_code}" \
+                 -H "Host: test.playball.example.com" https://10.0.0.11:443/) && \
+               [ "$HTTPS_STATUS" = "200" ] && break; \
+               [ "$i" -eq 10 ] && { echo "Expected HTTPS 200, got $HTTPS_STATUS after retries"; exit 1; }; \
+               sleep 5; \
+             done && \
+             echo "HTTPS validation passed"'
 
       - name: Collect support bundle
         id: collect-support-bundle

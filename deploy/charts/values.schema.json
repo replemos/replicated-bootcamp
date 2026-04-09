@@ -129,21 +129,6 @@
             }
           }
         }
-      },
-      "if": {
-        "properties": {
-          "enabled": { "const": true }
-        },
-        "required": ["enabled"]
-      },
-      "then": {
-        "properties": {
-          "hostname": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": ["hostname"]
       }
     },
     "postgresql": {

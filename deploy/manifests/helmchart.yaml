@@ -23,6 +23,11 @@ spec:
       url: 'repl{{ ConfigOption "external_redis_url" }}'
     nextauth:
       secret: 'repl{{ ConfigOption "nextauth_secret" }}'
+      url: 'repl{{ print "https://" (or (ConfigOption "hostname") "localhost") }}'
+    ingress:
+      enabled: true
+      className: traefik
+      hostname: 'repl{{ ConfigOption "hostname" }}'
     aiCommentary:
       provider: 'repl{{ ConfigOption "ai_provider" }}'
       openaiApiKey: 'repl{{ ConfigOption "openai_api_key" }}'
