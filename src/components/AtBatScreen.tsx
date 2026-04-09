@@ -33,6 +33,7 @@ export function AtBatScreen({ batter, lastRoll, onDone }: Props) {
   const [die2, setDie2] = useState<number | null>(null)
   const [phase, setPhase] = useState<'rolling' | 'landed' | 'done'>('rolling')
   const [showPopup, setShowPopup] = useState(false)
+  const [commentary, setCommentary] = useState<string | null | 'loading'>(null)
 
   const lastRollRef = useRef(lastRoll)
   const flickerEndRef = useRef(Date.now() + 1300)
@@ -61,6 +62,16 @@ export function AtBatScreen({ batter, lastRoll, onDone }: Props) {
       return () => clearTimeout(t)
     }
   }, [phase])
+
+  useEffect(() => {
+    if (phase !== 'done' || !lastRoll) return
+    const outcome = OUTCOME_TABLE[lastRoll.adjusted] ?? ''
+    setCommentary('loading')
+    fetch(`/api/commentary?outcome=${encodeURIComponent(outcome)}&batter=${encodeURIComponent(batter.name)}`)
+      .then((r) => r.json())
+      .then((data: { commentary?: string | null }) => setCommentary(data.commentary ?? null))
+      .catch(() => setCommentary(null))
+  }, [phase, lastRoll, batter.name])
 
   const cb = contactBonus(batter.contact)
   const pb = powerBonus(batter.power)
@@ -159,10 +170,28 @@ export function AtBatScreen({ batter, lastRoll, onDone }: Props) {
         })}
       </pre>
 
-      {phase === 'done' && (
+      {phase === 'done' && commentary === 'loading' && (
+        <pre
+          style={{ fontFamily: "'Courier New', Courier, monospace" }}
+          className="text-yellow-400 text-xs mt-6 animate-pulse"
+        >
+          GENERATING COMMENTARY...
+        </pre>
+      )}
+
+      {phase === 'done' && commentary !== null && commentary !== 'loading' && (
+        <pre
+          style={{ fontFamily: "'Courier New', Courier, monospace" }}
+          className="text-cyan-300 text-xs mt-4 max-w-sm text-center whitespace-pre-wrap"
+        >
+          {commentary}
+        </pre>
+      )}
+
+      {phase === 'done' && commentary !== 'loading' && (
         <button
           onClick={onDone}
-          className="font-mono text-black bg-green-400 hover:bg-green-300 px-8 py-3 text-sm tracking-widest mt-6"
+          className="font-mono text-black bg-green-400 hover:bg-green-300 px-8 py-3 text-sm tracking-widest mt-4"
         >
           CONTINUE
         </button>
