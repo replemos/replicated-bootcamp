@@ -25,6 +25,6 @@ spec:
       secret: 'repl{{ ConfigOption "nextauth_secret" }}'
       url: 'repl{{ print "https://" (or (ConfigOption "hostname") "localhost") }}'
     ingress:
-      enabled: repl{{ ne (ConfigOption "hostname") "" }}
+      enabled: true
       className: traefik
       hostname: 'repl{{ ConfigOption "hostname" }}'
