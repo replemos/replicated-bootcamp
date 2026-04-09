@@ -189,10 +189,13 @@ jobs:
                -H "Host: test.playball.example.com" http://10.0.0.11:80/) && \
              ([ "$HTTP_STATUS" = "301" ] || [ "$HTTP_STATUS" = "308" ]) || \
                { echo "Expected HTTP redirect, got $HTTP_STATUS"; exit 1; } && \
-             HTTPS_STATUS=$(curl -sko /dev/null -w "%{http_code}" \
-               -H "Host: test.playball.example.com" https://10.0.0.11:443/) && \
-             [ "$HTTPS_STATUS" = "200" ] || \
-               { echo "Expected HTTPS 200, got $HTTPS_STATUS"; exit 1; } && \
+             for i in $(seq 1 10); do \
+               HTTPS_STATUS=$(curl -sko /dev/null -w "%{http_code}" \
+                 -H "Host: test.playball.example.com" https://10.0.0.11:443/) && \
+               [ "$HTTPS_STATUS" = "200" ] && break; \
+               [ "$i" -eq 10 ] && { echo "Expected HTTPS 200, got $HTTPS_STATUS after retries"; exit 1; }; \
+               sleep 5; \
+             done && \
              echo "HTTPS validation passed"'
 
       - name: Collect support bundle

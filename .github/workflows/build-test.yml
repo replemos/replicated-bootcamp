@@ -25,7 +25,14 @@ jobs:
       - run: npm test
 
       - name: Helm lint
-        run: helm lint deploy/charts --set nextauth.secret=test
+        run: |
+          helm lint deploy/charts --set nextauth.secret=test
+          helm lint deploy/charts \
+            --set nextauth.secret=test \
+            --set nextauth.url=https://example.com \
+            --set ingress.enabled=true \
+            --set ingress.hostname=example.com \
+            --set ingress.className=traefik
 
       - name: Install Replicated CLI
         run: |
