@@ -35,9 +35,8 @@ spec:
       items:
         - name: hostname
           title: Hostname
-          help_text: "Hostname for the app, e.g. playball.example.com"
+          help_text: "Hostname for the app, e.g. playball.example.com. Leave blank to accept traffic on any hostname."
           type: text
-          required: true
 
     - name: secrets
       title: Secrets

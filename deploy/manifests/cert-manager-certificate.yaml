@@ -6,7 +6,7 @@ metadata:
 spec:
   secretName: traefik-default-tls
   dnsNames:
-    - 'repl{{ ConfigOption "hostname" }}'
+    - 'repl{{ or (ConfigOption "hostname") "cluster.local" }}'
   issuerRef:
     name: selfsigned
     kind: ClusterIssuer
