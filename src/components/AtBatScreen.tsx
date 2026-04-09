@@ -65,12 +65,19 @@ export function AtBatScreen({ batter, lastRoll, onDone }: Props) {
 
   useEffect(() => {
     if (phase !== 'done' || !lastRoll) return
+    const controller = new AbortController()
     const outcome = OUTCOME_TABLE[lastRoll.adjusted] ?? ''
     setCommentary('loading')
-    fetch(`/api/commentary?outcome=${encodeURIComponent(outcome)}&batter=${encodeURIComponent(batter.name)}`)
+    fetch(
+      `/api/commentary?outcome=${encodeURIComponent(outcome)}&batter=${encodeURIComponent(batter.name)}`,
+      { signal: controller.signal }
+    )
       .then((r) => r.json())
       .then((data: { commentary?: string | null }) => setCommentary(data.commentary ?? null))
-      .catch(() => setCommentary(null))
+      .catch((err: Error) => {
+        if (err.name !== 'AbortError') setCommentary(null)
+      })
+    return () => controller.abort()
   }, [phase, lastRoll, batter.name])
 
   const cb = contactBonus(batter.contact)
