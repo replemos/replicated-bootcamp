@@ -23,7 +23,7 @@ spec:
       url: 'repl{{ ConfigOption "external_redis_url" }}'
     nextauth:
       secret: 'repl{{ ConfigOption "nextauth_secret" }}'
-      url: 'repl{{ print "http://" (ConfigOption "hostname") }}'
+      url: 'repl{{ print "https://" (ConfigOption "hostname") }}'
     ingress:
       enabled: true
       className: traefik
