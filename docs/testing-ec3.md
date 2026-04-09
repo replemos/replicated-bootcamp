@@ -25,13 +25,15 @@ The private key is gitignored. The public key is committed.
 Package the chart and create a Replicated release:
 
 ```bash
-HELM_VERSION="0.1.0-ec3-test"
+# CHART_VERSION must match the chartVersion in deploy/manifests/helmchart.yaml
+CHART_VERSION="0.1.0"
+RELEASE_VERSION="${CHART_VERSION}-ec3-test"
 helm dependency update deploy/charts
-helm package deploy/charts -d deploy/manifests --version "$HELM_VERSION"
+helm package deploy/charts -d deploy/manifests --version "$CHART_VERSION"
 
 replicated release create \
   --yaml-dir deploy/manifests \
-  --version "$HELM_VERSION" \
+  --version "$RELEASE_VERSION" \
   --promote Unstable \
   --token $REPLICATED_API_TOKEN \
   --app playball-exe
@@ -39,7 +41,7 @@ replicated release create \
 rm deploy/manifests/*.tgz
 ```
 
-Note the channel slug (e.g. `unstable`) from the output.
+Note the channel slug (e.g. `unstable`) and release version from the output.
 
 ## Create a Customer
 
@@ -76,6 +78,15 @@ Note the VM ID.
 
 ## Create config-values.yaml
 
+A sample is checked in at `deploy/config-values.yaml`. Copy it and set `hostname` to a DNS name that resolves to the VM's IP (e.g. using [nip.io](https://nip.io): `playball.<vm-ip>.nip.io`):
+
+```bash
+cp deploy/config-values.yaml /tmp/config-values.yaml
+# Edit hostname before SCPing
+```
+
+Or generate it inline:
+
 ```bash
 cat > /tmp/config-values.yaml <<'EOF'
 apiVersion: kots.io/v1beta1
@@ -86,6 +97,8 @@ spec:
       value: "1"
     redis_enabled:
       value: "1"
+    hostname:
+      value: "playball.<vm-ip>.nip.io"
 EOF
 ```
 
@@ -122,14 +135,26 @@ ssh -i .ssh/id_ed25519 \
 On the VM, download and run the installer (the license is embedded in the tgz):
 
 ```bash
-# Replace <channel-slug>, <version>, and <license-id> with your values
-curl -f "https://replicated.app/embedded/playball-exe/<channel-slug>/<version>" \
+# Replace <channel-slug>, <release-version>, and <license-id> with your values
+# <release-version> is the --version passed to `replicated release create` (e.g. 0.1.0-ec3-test)
+curl -f "https://replicated.app/embedded/playball-exe/<channel-slug>/<release-version>" \
   -H "Authorization: <license-id>" \
   -o playball-exe.tgz
 
 tar xzf playball-exe.tgz
 
 sudo ./playball-exe install \
+  --license license.yaml \
+  --headless \
+  --yes \
+  --installer-password "yourpassword" \
+  --config-values /tmp/config-values.yaml
+```
+
+If the application is already installed (e.g. re-releasing to the same VM), use `upgrade` instead:
+
+```bash
+sudo ./playball-exe upgrade \
   --license license.yaml \
   --headless \
   --yes \
@@ -146,6 +171,26 @@ replicated vm port expose <vm-id> --port 30080 --protocol http,https --token $RE
 ```
 
 The command returns a public URL. Open it in a browser to access the Admin Console.
+
+## Access the App
+
+Traefik listens on port 80. Expose it and open the hostname you configured:
+
+```bash
+replicated vm port expose <vm-id> --port 80 --protocol http --token $REPLICATED_API_TOKEN
+```
+
+The app will be accessible at `http://<hostname>` (where `<hostname>` is the value you set in config-values.yaml).
+
+## Access the App via HTTPS
+
+Traefik also listens on port 443 with a self-signed certificate. Expose it:
+
+```bash
+replicated vm port expose <vm-id> --port 443 --protocol https --token $REPLICATED_API_TOKEN
+```
+
+The app is accessible at the HTTPS URL. Your browser will show a certificate warning for the self-signed cert — proceed past it. HTTP traffic on port 80 redirects automatically to HTTPS.
 
 ## Clean Up
 

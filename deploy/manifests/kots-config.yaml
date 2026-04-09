@@ -30,6 +30,15 @@ spec:
           type: password
           when: '{{repl ConfigOptionEquals "redis_enabled" "0"}}'
 
+    - name: ingress
+      title: Ingress
+      items:
+        - name: hostname
+          title: Hostname
+          help_text: "Hostname for the app, e.g. playball.example.com"
+          type: text
+          required: true
+
     - name: secrets
       title: Secrets
       items:
