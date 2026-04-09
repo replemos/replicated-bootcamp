@@ -3,10 +3,12 @@ kind: Certificate
 metadata:
   name: traefik-default-tls
   namespace: traefik
+  annotations:
+    kots.io/exclude: 'repl{{ ConfigOptionEquals "tls_mode" "manual" }}'
 spec:
   secretName: traefik-default-tls
   dnsNames:
     - 'repl{{ or (ConfigOption "hostname") "cluster.local" }}'
   issuerRef:
-    name: selfsigned
+    name: 'repl{{ if ConfigOptionEquals "tls_mode" "lets_encrypt" }}letsencrypt{{ else }}selfsigned{{ end }}'
     kind: ClusterIssuer
