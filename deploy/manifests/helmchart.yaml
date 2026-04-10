@@ -9,24 +9,30 @@ spec:
   releaseName: playball-exe
   helmUpgradeFlags:
     - --timeout
-    - 15m
+    - 10m
   builder:
     nextauth:
       secret: placeholder
   values:
+    image:
+      registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}'
+      repository: 'repl{{ ReplicatedImageRepository "docker.io/replemos/playball.exe" }}'
     replicated:
       image:
         registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}'
+        repository: 'repl{{ ReplicatedImageRepository "library/replicated-sdk-image" true }}'
     postgresql:
       enabled: repl{{ ConfigOptionEquals "postgresql_enabled" "1" }}
       image:
-        registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}/proxy/playball-exe'
+        registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}'
+        repository: 'repl{{ ReplicatedImageRepository "registry-1.docker.io/bitnami/postgresql" }}'
     externalDatabase:
       url: 'repl{{ ConfigOption "external_postgres_url" }}'
     redis:
       enabled: repl{{ ConfigOptionEquals "redis_enabled" "1" }}
       image:
-        registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}/proxy/playball-exe'
+        registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}'
+        repository: 'repl{{ ReplicatedImageRepository "registry-1.docker.io/bitnami/redis" }}'
       replica:
         replicaCount: 1
     externalRedis:
