@@ -9,7 +9,7 @@ spec:
   releaseName: playball-exe
   helmUpgradeFlags:
     - --timeout
-    - 15m
+    - 10m
   builder:
     nextauth:
       secret: placeholder
@@ -20,7 +20,7 @@ spec:
     replicated:
       image:
         registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}'
-        repository: 'repl{{ ReplicatedImageRepository "library/replicated-sdk-image" }}'
+        repository: 'repl{{ if IsAirgap }}repl{{ ReplicatedImageRepository "library/replicated-sdk-image" }}repl{{ else }}library/replicated-sdk-image{{ end }}'
     postgresql:
       enabled: repl{{ ConfigOptionEquals "postgresql_enabled" "1" }}
       image:
