@@ -198,7 +198,7 @@ jobs:
              done && \
              echo "HTTPS validation passed"'
 
-      - name: Collect support bundle
+      - name: Collect support bundle (ec3)
         id: collect-support-bundle
         if: always() && steps.create-vm.outcome == 'success'
         continue-on-error: true
@@ -222,7 +222,7 @@ jobs:
             "ci@${SSH_HOST}:/tmp/support-bundle.tar.gz" \
             ./support-bundle.tar.gz
 
-      - name: Upload support bundle artifact
+      - name: Upload support bundle (ec3)
         if: always() && steps.collect-support-bundle.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
