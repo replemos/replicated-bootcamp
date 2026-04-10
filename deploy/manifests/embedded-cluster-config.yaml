@@ -30,17 +30,7 @@ spec:
           crds:
             enabled: true
         builder:
-          image:
-            registry: images.emosbaugh.be/proxy/playball-exe
-          cainjector:
-            image:
-              registry: images.emosbaugh.be/proxy/playball-exe
-          webhook:
-            image:
-              registry: images.emosbaugh.be/proxy/playball-exe
-          startupapicheck:
-            image:
-              registry: images.emosbaugh.be/proxy/playball-exe
+          imageRegistry: images.emosbaugh.be/proxy/playball-exe
       - chart:
           name: traefik
           chartVersion: "39.0.7"
