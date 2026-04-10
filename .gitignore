@@ -48,3 +48,5 @@ next-env.d.ts
 .claude/settings.local.json
 .claude/worktrees/
 .ssh/
+test-results/
+deploy/charts/**/*.tgz

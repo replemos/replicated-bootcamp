@@ -69,7 +69,6 @@ Then install:
 ```bash
 helm install playball-exe oci://registry.replicated.com/playball-exe/playball-exe \
   --version <chart-version> \
-  --set replicated.licenseID=<license-id> \
   --set nextauth.secret="$(openssl rand -base64 32)" \
   --set service.type=NodePort
 ```
