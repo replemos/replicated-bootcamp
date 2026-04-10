@@ -20,7 +20,7 @@ spec:
     replicated:
       image:
         registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}'
-        repository: 'repl{{ if IsAirgap }}repl{{ ReplicatedImageRepository "library/replicated-sdk-image" }}repl{{ else }}library/replicated-sdk-image{{ end }}'
+        repository: 'repl{{ ReplicatedImageRepository "library/replicated-sdk-image" false }}'
     postgresql:
       enabled: repl{{ ConfigOptionEquals "postgresql_enabled" "1" }}
       image:
