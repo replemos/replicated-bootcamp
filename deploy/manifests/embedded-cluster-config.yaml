@@ -16,20 +16,20 @@ spec:
         weight: 10
         values:
           image:
-            registry: '{{repl ReplicatedImageRegistry (HelmValue ".image.registry") }}'
-            repository: '{{repl ReplicatedImageRepository (HelmValue ".image.repository") true }}'
+            registry: '{{repl ReplicatedImageRegistry "quay.io" }}'
+            repository: '{{repl ReplicatedImageRepository "jetstack/cert-manager-controller" }}'
           cainjector:
             image:
-              registry: '{{repl ReplicatedImageRegistry (HelmValue ".cainjector.image.registry") }}'
-              repository: '{{repl ReplicatedImageRepository (HelmValue ".cainjector.image.repository") true }}'
+              registry: '{{repl ReplicatedImageRegistry "quay.io" }}'
+              repository: '{{repl ReplicatedImageRepository "jetstack/cert-manager-cainjector" }}'
           webhook:
             image:
-              registry: '{{repl ReplicatedImageRegistry (HelmValue ".webhook.image.registry") }}'
-              repository: '{{repl ReplicatedImageRepository (HelmValue ".webhook.image.repository") true }}'
+              registry: '{{repl ReplicatedImageRegistry "quay.io" }}'
+              repository: '{{repl ReplicatedImageRepository "jetstack/cert-manager-webhook" }}'
           startupapicheck:
             image:
-              registry: '{{repl ReplicatedImageRegistry (HelmValue ".startupapicheck.image.registry") }}'
-              repository: '{{repl ReplicatedImageRepository (HelmValue ".startupapicheck.image.repository") true }}'
+              registry: '{{repl ReplicatedImageRegistry "quay.io" }}'
+              repository: '{{repl ReplicatedImageRepository "jetstack/cert-manager-startupapicheck" }}'
           crds:
             enabled: true
         builder:
@@ -51,8 +51,8 @@ spec:
         namespace: traefik
         values:
           image:
-            registry: '{{repl ReplicatedImageRegistry (HelmValue ".image.registry") }}'
-            repository: '{{repl ReplicatedImageRepository (HelmValue ".image.repository") true }}'
+            registry: '{{repl ReplicatedImageRegistry "docker.io" }}'
+            repository: '{{repl ReplicatedImageRepository "library/traefik" }}'
           service:
             type: NodePort
           ports:
