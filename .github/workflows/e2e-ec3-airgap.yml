@@ -189,7 +189,7 @@ jobs:
             --policy airgap \
             --token ${{ secrets.REPLICATED_API_TOKEN }}
 
-      - name: Install EC v3 with airgap bundle
+      - name: Install EC v3 in airgap mode
         run: |
           VM_ID="${{ steps.create-vm.outputs.vm-id }}"
           SSH_ENDPOINT=$(replicated vm ssh-endpoint "$VM_ID" \
