@@ -16,30 +16,22 @@ spec:
         weight: 10
         values:
           image:
-            registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}/proxy/playball-exe'
+            registry: '{{repl ReplicatedImageRegistry "quay.io" }}'
+            repository: '{{repl ReplicatedImageRepository "quay.io/jetstack/cert-manager-controller" }}'
           cainjector:
             image:
-              registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}/proxy/playball-exe'
+              registry: '{{repl ReplicatedImageRegistry "quay.io" }}'
+              repository: '{{repl ReplicatedImageRepository "quay.io/jetstack/cert-manager-cainjector" }}'
           webhook:
             image:
-              registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}/proxy/playball-exe'
+              registry: '{{repl ReplicatedImageRegistry "quay.io" }}'
+              repository: '{{repl ReplicatedImageRepository "quay.io/jetstack/cert-manager-webhook" }}'
           startupapicheck:
             image:
-              registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}/proxy/playball-exe'
+              registry: '{{repl ReplicatedImageRegistry "quay.io" }}'
+              repository: '{{repl ReplicatedImageRepository "quay.io/jetstack/cert-manager-startupapicheck" }}'
           crds:
             enabled: true
-        builder:
-          image:
-            registry: images.emosbaugh.be/proxy/playball-exe
-          cainjector:
-            image:
-              registry: images.emosbaugh.be/proxy/playball-exe
-          webhook:
-            image:
-              registry: images.emosbaugh.be/proxy/playball-exe
-          startupapicheck:
-            image:
-              registry: images.emosbaugh.be/proxy/playball-exe
       - chart:
           name: traefik
           chartVersion: "39.0.7"
@@ -47,7 +39,8 @@ spec:
         namespace: traefik
         values:
           image:
-            registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}/proxy/playball-exe'
+            registry: '{{repl ReplicatedImageRegistry "docker.io" }}'
+            repository: '{{repl ReplicatedImageRepository "docker.io/library/traefik" }}'
           service:
             type: NodePort
           ports:
@@ -69,6 +62,3 @@ spec:
                 default: true
               exposedPort: 443
               nodePort: 443
-        builder:
-          image:
-            registry: images.emosbaugh.be/proxy/playball-exe

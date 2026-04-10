@@ -16,10 +16,11 @@ RUN npm ci --ignore-scripts
 FROM node:20-alpine AS prod-deps
 WORKDIR /app
 COPY package.json package-lock.json ./
+COPY prisma/schema.prisma ./prisma/
 # After install, remove Prisma engine binaries for non-Alpine platforms. The app uses
 # @prisma/adapter-pg (driver adapters) so no query engine is needed at all — only the
 # schema engine binary for `prisma migrate deploy` on linux-musl is required.
-RUN npm ci --omit=dev --ignore-scripts && \
+RUN npm ci --omit=dev && \
     find ./node_modules/@prisma/engines -type f \( -name "query-engine-*" -o -name "libquery_engine-*" \) -delete && \
     find ./node_modules/@prisma/engines -type f -name "schema-engine-*" ! -name "*linux-musl*" -delete && \
     find ./node_modules/prisma -type f -name "query-engine-*" -delete

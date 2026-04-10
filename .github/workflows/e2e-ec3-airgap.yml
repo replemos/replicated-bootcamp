@@ -1,4 +1,4 @@
-name: E2E Test EC v3 on CMX VM
+name: E2E Test EC v3 Airgap on CMX VM
 
 on:
   workflow_call:
@@ -40,9 +40,9 @@ on:
         type: string
 
 jobs:
-  e2e-ec3:
+  e2e-ec3-airgap:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -59,9 +59,10 @@ jobs:
         id: create-customer
         run: |
           CUSTOMER_JSON=$(replicated customer create \
-            --name "ci-ec3-pr-${{ inputs.pr-number }}-${{ github.run_number }}" \
+            --name "ci-ec3-airgap-pr-${{ inputs.pr-number }}-${{ github.run_number }}" \
             --channel "pr-${{ inputs.pr-number }}" \
             --type dev \
+            --airgap \
             --embedded-cluster-download \
             --app playball-exe \
             --output json \
@@ -86,16 +87,18 @@ jobs:
       - name: Create CMX VM
         id: create-vm
         run: |
-          VM_ID=$(replicated vm create \
+          VM_JSON=$(replicated vm create \
             --distribution ubuntu \
             --version 24.04 \
             --instance-type r1.large \
             --ttl 1h \
             --ssh-public-key .ssh/id_ed25519.pub \
             --token ${{ secrets.REPLICATED_API_TOKEN }} \
-            --output json \
-            | jq -r '.[0].id')
+            --output json)
+          VM_ID=$(echo "$VM_JSON" | jq -r '.[0].id')
+          NETWORK_ID=$(echo "$VM_JSON" | jq -r '.[0].network_id')
           echo "vm-id=$VM_ID" >> $GITHUB_OUTPUT
+          echo "network-id=$NETWORK_ID" >> $GITHUB_OUTPUT
 
       - name: Wait for VM to be running
         run: |
@@ -141,7 +144,23 @@ jobs:
             /tmp/config-values.yaml \
             "ci@${SCP_HOST}:/tmp/config-values.yaml"
 
-      - name: Download and install EC v3
+      - name: Poll for airgap bundle availability
+        env:
+          LICENSE_ID: ${{ steps.create-customer.outputs.license-id }}
+          CHANNEL: pr-${{ inputs.pr-number }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          for i in $(seq 1 60); do
+            STATUS=$(curl -so /dev/null -w "%{http_code}" \
+              -H "Authorization: ${LICENSE_ID}" \
+              "https://replicated.app/embedded/playball-exe/${CHANNEL}/${VERSION}?airgap=true")
+            echo "Airgap bundle status: $STATUS (attempt $i/60)"
+            [ "$STATUS" = "200" ] && break
+            [ "$i" -eq 60 ] && { echo "Timed out waiting for airgap bundle"; exit 1; }
+            sleep 10
+          done
+
+      - name: Download installer with airgap bundle on VM
         env:
           LICENSE_ID: ${{ steps.create-customer.outputs.license-id }}
           CHANNEL: pr-${{ inputs.pr-number }}
@@ -160,10 +179,33 @@ jobs:
             -o ServerAliveInterval=30 \
             -o ServerAliveCountMax=60 \
             "ci@$SSH_HOST" \
-            "curl -f 'https://replicated.app/embedded/playball-exe/${CHANNEL}/${VERSION}' \
+            "curl -f 'https://replicated.app/embedded/playball-exe/${CHANNEL}/${VERSION}?airgap=true' \
                -H 'Authorization: ${LICENSE_ID}' -o playball-exe.tgz && \
-             tar xzf playball-exe.tgz && \
-             sudo ./playball-exe install \
+             tar xzf playball-exe.tgz"
+
+      - name: Enable airgap network policy
+        run: |
+          replicated network update "${{ steps.create-vm.outputs.network-id }}" \
+            --policy airgap \
+            --token ${{ secrets.REPLICATED_API_TOKEN }}
+
+      - name: Install EC v3 in airgap mode
+        run: |
+          VM_ID="${{ steps.create-vm.outputs.vm-id }}"
+          SSH_ENDPOINT=$(replicated vm ssh-endpoint "$VM_ID" \
+            --username ci \
+            --token ${{ secrets.REPLICATED_API_TOKEN }})
+          SSH_HOST=$(echo "$SSH_ENDPOINT" | sed 's|[a-z]*://[^@]*@||' | cut -d: -f1)
+          SSH_PORT=$(echo "$SSH_ENDPOINT" | cut -d: -f3)
+          ssh -i .ssh/id_ed25519 \
+            -p "$SSH_PORT" \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=60 \
+            "ci@$SSH_HOST" \
+            "sudo ./playball-exe install \
+               --airgap \
                --license license.yaml \
                --headless \
                --yes \
@@ -198,7 +240,7 @@ jobs:
              done && \
              echo "HTTPS validation passed"'
 
-      - name: Collect support bundle (ec3)
+      - name: Collect support bundle (ec3-airgap)
         id: collect-support-bundle
         if: always() && steps.create-vm.outcome == 'success'
         continue-on-error: true
@@ -222,11 +264,11 @@ jobs:
             "ci@${SSH_HOST}:/tmp/support-bundle.tar.gz" \
             ./support-bundle.tar.gz
 
-      - name: Upload support bundle (ec3)
+      - name: Upload support bundle (ec3-airgap)
         if: always() && steps.collect-support-bundle.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: support-bundle-ec3-pr-${{ inputs.pr-number }}-${{ github.run_number }}
+          name: support-bundle-ec3-airgap-pr-${{ inputs.pr-number }}-${{ github.run_number }}
           path: support-bundle.tar.gz
           if-no-files-found: warn
 

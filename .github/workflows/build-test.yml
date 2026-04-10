@@ -3,6 +3,10 @@ name: Build and Test
 on:
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   build:
     uses: ./.github/workflows/docker-publish.yml
@@ -75,6 +79,15 @@ jobs:
           helm repo add jetstack https://charts.jetstack.io
           helm pull jetstack/cert-manager --version v1.17.2 -d deploy/manifests
 
+      - name: Install Replicated CLI
+        run: |
+          version=$(curl -s https://api.github.com/repos/replicatedhq/replicated/releases/latest \
+            | grep -m1 -Po '"tag_name":\s*"v\K[^"]+')
+          curl -Ls "https://github.com/replicatedhq/replicated/releases/download/v${version}/replicated_${version}_linux_amd64.tar.gz" \
+            -o replicated.tar.gz
+          tar xf replicated.tar.gz replicated && rm replicated.tar.gz
+          sudo mv replicated /usr/local/bin/replicated
+
       - name: Create and promote Replicated release
         id: create-release
         uses: replicatedhq/replicated-actions/create-release@v1
@@ -84,6 +97,22 @@ jobs:
           yaml-dir: deploy/manifests
           promote-channel: pr-${{ github.event.pull_request.number }}
           version: ${{ steps.set-version.outputs.version }}
+
+      - name: Trigger airgap bundle build
+        run: |
+          CHANNEL_SLUG="${{ steps.create-release.outputs.channel-slug }}"
+          APP_ID=$(replicated api get /v3/apps \
+            --token ${{ secrets.REPLICATED_API_TOKEN }} \
+            | jq -r '.apps[] | select(.slug == "playball-exe") | .id')
+          CHANNEL=$(replicated api get /v3/app/${APP_ID}/channels \
+            --token ${{ secrets.REPLICATED_API_TOKEN }} \
+            | jq --arg slug "$CHANNEL_SLUG" '.channels[] | select(.channelSlug == $slug)')
+          CHANNEL_ID=$(echo "$CHANNEL" | jq -r '.id')
+          CHANNEL_SEQ=$(echo "$CHANNEL" | jq -r '.channelSequence')
+          echo "APP_ID=${APP_ID} CHANNEL_ID=${CHANNEL_ID} CHANNEL_SEQ=${CHANNEL_SEQ}"
+          replicated api post /v3/app/${APP_ID}/channel/${CHANNEL_ID}/release/${CHANNEL_SEQ}/airgap/build \
+            --token ${{ secrets.REPLICATED_API_TOKEN }} \
+            -b '{}'
 
   e2e:
     needs: [release]
@@ -105,8 +134,18 @@ jobs:
       version: ${{ needs.release.outputs.version }}
     secrets: inherit
 
+  e2e-ec3-airgap:
+    needs: [release]
+    uses: ./.github/workflows/e2e-ec3-airgap.yml
+    with:
+      image-tag: pr-${{ github.event.pull_request.number }}
+      pr-number: ${{ github.event.pull_request.number }}
+      channel-slug: ${{ needs.release.outputs.channel-slug }}
+      version: ${{ needs.release.outputs.version }}
+    secrets: inherit
+
   archive-channel:
-    needs: [release, e2e, e2e-ec3]
+    needs: [release, e2e, e2e-ec3, e2e-ec3-airgap]
     if: needs.release.result == 'success'
     runs-on: ubuntu-latest
     steps:
