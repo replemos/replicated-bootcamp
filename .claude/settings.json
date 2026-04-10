@@ -2,6 +2,9 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
+      "Bash(replicated cluster:*)",
+      "Bash(replicated vm:*)",
+      "Bash(replicated network:*)",
       "Bash(k3d cluster:*)",
       "Bash(openssl rand:*)",
       "Bash(npm install:*)",
