@@ -18,7 +18,7 @@ spec:
       imageRegistry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}/proxy/playball-exe'
     replicated:
       image:
-        registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}/proxy/playball-exe'
+        registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}'
     postgresql:
       enabled: repl{{ ConfigOptionEquals "postgresql_enabled" "1" }}
     externalDatabase:
@@ -30,7 +30,7 @@ spec:
     externalRedis:
       url: 'repl{{ ConfigOption "external_redis_url" }}'
     nextauth:
-      secret: 'repl{{ ConfigOption "nextauth_secret" }}'
+      secret: 'repl{{ default "placeholder" (ConfigOption "nextauth_secret") }}'
       url: 'repl{{ print "https://" (or (ConfigOption "hostname") "localhost") }}'
     ingress:
       enabled: true
