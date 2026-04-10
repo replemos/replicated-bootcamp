@@ -84,26 +84,6 @@ jobs:
           tar xf replicated.tar.gz replicated && rm replicated.tar.gz
           sudo mv replicated /usr/local/bin/replicated
 
-      - name: Ensure PR channel has airgap builds enabled
-        run: |
-          CHANNEL_NAME="pr-${{ github.event.pull_request.number }}"
-          APP_ID=$(replicated api get /v3/apps \
-            --token ${{ secrets.REPLICATED_API_TOKEN }} \
-            | jq -r '.apps[] | select(.slug == "playball-exe") | .id')
-          CHANNEL=$(replicated api get /v3/app/${APP_ID}/channels \
-            --token ${{ secrets.REPLICATED_API_TOKEN }} \
-            | jq --arg name "$CHANNEL_NAME" '.channels[] | select(.name == $name)')
-          if [ -n "$CHANNEL" ]; then
-            CHANNEL_ID=$(echo "$CHANNEL" | jq -r '.id')
-            replicated api put /v3/app/${APP_ID}/channel/${CHANNEL_ID} \
-              --token ${{ secrets.REPLICATED_API_TOKEN }} \
-              -b "{\"name\": \"${CHANNEL_NAME}\", \"buildAirgapAutomatically\": true}"
-          else
-            replicated api post /v3/app/${APP_ID}/channel \
-              --token ${{ secrets.REPLICATED_API_TOKEN }} \
-              -b "{\"name\": \"${CHANNEL_NAME}\", \"buildAirgapAutomatically\": true}"
-          fi
-
       - name: Create and promote Replicated release
         id: create-release
         uses: replicatedhq/replicated-actions/create-release@v1
@@ -113,6 +93,20 @@ jobs:
           yaml-dir: deploy/manifests
           promote-channel: pr-${{ github.event.pull_request.number }}
           version: ${{ steps.set-version.outputs.version }}
+
+      - name: Trigger airgap bundle build
+        run: |
+          CHANNEL_SLUG="${{ steps.create-release.outputs.channel-slug }}"
+          APP_ID=$(replicated api get /v3/apps \
+            --token ${{ secrets.REPLICATED_API_TOKEN }} \
+            | jq -r '.apps[] | select(.slug == "playball-exe") | .id')
+          CHANNEL=$(replicated api get /v3/app/${APP_ID}/channels \
+            --token ${{ secrets.REPLICATED_API_TOKEN }} \
+            | jq --arg slug "$CHANNEL_SLUG" '.channels[] | select(.channelSlug == $slug)')
+          CHANNEL_ID=$(echo "$CHANNEL" | jq -r '.id')
+          RELEASE_SEQ=$(echo "$CHANNEL" | jq -r '.releaseSequence')
+          replicated api post /v3/app/${APP_ID}/channel/${CHANNEL_ID}/release/${RELEASE_SEQ}/airgap/build \
+            --token ${{ secrets.REPLICATED_API_TOKEN }}
 
   e2e:
     needs: [release]
