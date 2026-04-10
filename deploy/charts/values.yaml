@@ -8,7 +8,8 @@ global:
 
 # Container image for the app (and migration init container)
 image:
-  repository: images.emosbaugh.be/proxy/playball-exe/docker.io/replemos/playball.exe
+  registry: images.emosbaugh.be/proxy/playball-exe
+  repository: docker.io/replemos/playball.exe
   tag: main
   pullPolicy: Always
 
@@ -57,8 +58,7 @@ ingress:
 postgresql:
   enabled: true
   image:
-    registry: images.emosbaugh.be
-    repository: proxy/playball-exe/registry-1.docker.io/bitnami/postgresql
+    registry: images.emosbaugh.be/proxy/playball-exe
   auth:
     database: baseball
     username: baseball
@@ -82,8 +82,7 @@ externalDatabase:
 redis:
   enabled: true
   image:
-    registry: images.emosbaugh.be
-    repository: proxy/playball-exe/registry-1.docker.io/bitnami/redis
+    registry: images.emosbaugh.be/proxy/playball-exe
   auth:
     enabled: false
   master:
@@ -105,7 +104,6 @@ replicated:
   nameOverride: playball-exe-sdk
   image:
     registry: images.emosbaugh.be
-    repository: library/replicated-sdk-image
 
 # AI Commentary — set by KOTS config when ai_commentary_enabled license field is true
 aiCommentary:
