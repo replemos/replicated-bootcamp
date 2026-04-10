@@ -286,3 +286,9 @@ jobs:
         run: |
           replicated vm rm "${{ steps.create-vm.outputs.vm-id }}" \
             --token ${{ secrets.REPLICATED_API_TOKEN }}
+
+      - name: Delete network
+        if: always() && steps.create-vm.outcome != 'skipped'
+        run: |
+          replicated network rm "${{ steps.create-vm.outputs.network-id }}" \
+            --token ${{ secrets.REPLICATED_API_TOKEN }}
