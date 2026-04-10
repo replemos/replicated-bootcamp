@@ -29,8 +29,6 @@ spec:
               repository: '{{repl ReplicatedImageRepository "jetstack/cert-manager-startupapicheck" }}'
           crds:
             enabled: true
-        builder:
-          imageRegistry: images.emosbaugh.be/proxy/playball-exe
       - chart:
           name: traefik
           chartVersion: "39.0.7"
@@ -61,6 +59,3 @@ spec:
                 default: true
               exposedPort: 443
               nodePort: 443
-        builder:
-          image:
-            registry: images.emosbaugh.be/proxy/playball-exe
