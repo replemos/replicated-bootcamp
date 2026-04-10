@@ -181,7 +181,7 @@ jobs:
             "ci@$SSH_HOST" \
             "curl -f 'https://replicated.app/embedded/playball-exe/${CHANNEL}/${VERSION}' \
                -H 'Authorization: ${LICENSE_ID}' -o playball-exe.tgz && \
-             mkdir -p assets && \
+             tar xzf playball-exe.tgz && \
              curl -f 'https://replicated.app/embedded/playball-exe/${CHANNEL}/${VERSION}?airgap=true' \
                -H 'Authorization: ${LICENSE_ID}' -o assets/playball-exe.airgap"
 
@@ -206,8 +206,7 @@ jobs:
             -o ServerAliveInterval=30 \
             -o ServerAliveCountMax=60 \
             "ci@$SSH_HOST" \
-            "tar xzf playball-exe.tgz && \
-             sudo ./playball-exe install \
+            "sudo ./playball-exe install \
                --airgap \
                --license license.yaml \
                --headless \
