@@ -151,11 +151,13 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           for i in $(seq 1 60); do
-            STATUS=$(curl -so /dev/null -w "%{http_code}" \
+            BODY=$(curl -s -w "\n%{http_code}" \
               -H "Authorization: ${LICENSE_ID}" \
               "https://replicated.app/embedded/playball-exe/${CHANNEL}/${VERSION}?airgap=true")
+            STATUS=$(echo "$BODY" | tail -1)
             echo "Airgap bundle status: $STATUS (attempt $i/60)"
             [ "$STATUS" = "200" ] && break
+            [ "$STATUS" != "404" ] && echo "Response body: $(echo "$BODY" | head -1)"
             [ "$i" -eq 60 ] && { echo "Timed out waiting for airgap bundle"; exit 1; }
             sleep 10
           done
