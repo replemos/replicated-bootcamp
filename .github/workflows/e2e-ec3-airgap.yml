@@ -207,7 +207,7 @@ jobs:
             "ci@$SSH_HOST" \
             "tar xzf playball-exe.tgz && \
              sudo ./playball-exe install \
-               --airgap-bundle playball-exe.airgap \
+               --airgap playball-exe.airgap \
                --license license.yaml \
                --headless \
                --yes \
