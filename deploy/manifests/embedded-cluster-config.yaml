@@ -16,19 +16,19 @@ spec:
         weight: 10
         values:
           image:
-            registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}'
+            registry: '{{repl ReplicatedImageRegistry (HelmValue ".image.registry") }}'
             repository: '{{repl ReplicatedImageRepository (HelmValue ".image.repository") true }}'
           cainjector:
             image:
-              registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}'
+              registry: '{{repl ReplicatedImageRegistry (HelmValue ".cainjector.image.registry") }}'
               repository: '{{repl ReplicatedImageRepository (HelmValue ".cainjector.image.repository") true }}'
           webhook:
             image:
-              registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}'
+              registry: '{{repl ReplicatedImageRegistry (HelmValue ".webhook.image.registry") }}'
               repository: '{{repl ReplicatedImageRepository (HelmValue ".webhook.image.repository") true }}'
           startupapicheck:
             image:
-              registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}'
+              registry: '{{repl ReplicatedImageRegistry (HelmValue ".startupapicheck.image.registry") }}'
               repository: '{{repl ReplicatedImageRepository (HelmValue ".startupapicheck.image.repository") true }}'
           crds:
             enabled: true
@@ -51,7 +51,7 @@ spec:
         namespace: traefik
         values:
           image:
-            registry: 'repl{{ ReplicatedImageRegistry "images.emosbaugh.be" }}'
+            registry: '{{repl ReplicatedImageRegistry (HelmValue ".image.registry") }}'
             repository: '{{repl ReplicatedImageRepository (HelmValue ".image.repository") true }}'
           service:
             type: NodePort
