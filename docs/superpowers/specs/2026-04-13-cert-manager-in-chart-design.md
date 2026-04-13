@@ -77,18 +77,16 @@ keys: access-key-id, secret-access-key
 
 ## values.yaml
 
-New `certManager` and `tls` blocks added:
+New `certManager` block added (replaces separate `certManager.enabled` + `tls` blocks):
 
 ```yaml
 certManager:
-  enabled: true          # set false to skip all cert-manager resources (ClusterIssuers, Certificate, TLSStore, Route 53 secret)
-
-tls:
+  enabled: true          # set false to skip all cert-manager resources (ClusterIssuers, Certificate, TLSStore, credentials secret)
   mode: self_signed      # self_signed | lets_encrypt | lets_encrypt_dns01 | manual
   acmeEmail: ""
   cert: ""               # base64 PEM, manual mode only
   key: ""                # base64 PEM, manual mode only
-  route53:
+  dns01:                 # generic DNS-01 credentials; today maps to Route 53, provider details live in the template
     hostedZoneId: ""
     accessKeyId: ""
     secretAccessKey: ""
@@ -96,23 +94,27 @@ tls:
 
 All three cert-manager template files are gated behind `{{- if .Values.certManager.enabled }}`. When disabled, no cert-manager CRDs, Secrets, or TLSStore resources are created — useful for standalone chart installs without cert-manager present.
 
+Route 53-specific field names (`region`, `hostedZoneID` in the solver spec) live only in the chart template, not in the values API, keeping the values generic.
+
 The existing `ingress.tls` array in values.yaml is unrelated (unused by KOTS install) and is left as-is.
 
 ## helmchart.yaml Changes
 
-New `tls` block added under `spec.values`:
+New `certManager` block added under `spec.values`:
 
 ```yaml
-tls:
+certManager:
   mode: 'repl{{ ConfigOption "tls_mode" }}'
   acmeEmail: 'repl{{ ConfigOption "acme_email" }}'
   cert: 'repl{{ ConfigOption "tls_cert" }}'
   key: 'repl{{ ConfigOption "tls_key" }}'
-  route53:
+  dns01:
     hostedZoneId: 'repl{{ ConfigOption "route53_hosted_zone_id" }}'
     accessKeyId: 'repl{{ ConfigOption "route53_access_key_id" }}'
     secretAccessKey: 'repl{{ ConfigOption "route53_secret_access_key" }}'
 ```
+
+Note: `certManager.enabled` is not set in `helmchart.yaml` — it defaults to `true` in `values.yaml` and is not user-configurable via KOTS (it's a chart-level deployment toggle, not an installer config option).
 
 ## Files Deleted
 
