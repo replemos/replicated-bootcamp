@@ -64,7 +64,7 @@ Namespaced resources, all in `namespace: traefik`.
 
 - `Certificate` (traefik-default-tls) — excluded when mode is `manual`. `dnsNames` uses `tls.hostname` (falls back to `cluster.local`). `issuerRef` is `letsencrypt` when mode is `lets_encrypt` or `lets_encrypt_dns01`, otherwise `selfsigned`.
 - `TLSStore` (default) — always present; points to `traefik-default-tls` secret.
-- `Secret` (traefik-default-tls, type `kubernetes.io/tls`) — only when mode is `manual`; holds `tls.cert` and `tls.key`.
+- `Secret` (traefik-default-tls, type `kubernetes.io/tls`) — only when mode is `manual`; holds `.Values.certManager.manual.cert` and `.Values.certManager.manual.key`.
 
 ### `cert-manager-route53-secret.yaml`
 
@@ -73,7 +73,7 @@ A single `Secret` in `namespace: cert-manager`, created only when mode is `lets_
 ```
 name: cert-manager-route53-credentials
 keys: access-key-id, secret-access-key
-source: .Values.certManager.dns01.route53.accessKeyId / .secretAccessKey
+source: .Values.certManager.acme.dns01.route53.accessKeyId / .secretAccessKey
 ```
 
 ## values.yaml
@@ -84,14 +84,16 @@ New `certManager` block added:
 certManager:
   enabled: true          # set false to skip all cert-manager resources (ClusterIssuers, Certificate, TLSStore, credentials secret)
   mode: self_signed      # self_signed | lets_encrypt | lets_encrypt_dns01 | manual
-  acmeEmail: ""
-  cert: ""               # base64 PEM, manual mode only
-  key: ""                # base64 PEM, manual mode only
-  dns01:
-    route53:             # only provider supported today; add siblings (cloudflare, etc.) later
-      hostedZoneId: ""
-      accessKeyId: ""
-      secretAccessKey: ""
+  acme:
+    email: ""
+    dns01:
+      route53:           # only provider supported today; add siblings (cloudflare, etc.) later
+        hostedZoneId: ""
+        accessKeyId: ""
+        secretAccessKey: ""
+  manual:
+    cert: ""             # base64 PEM
+    key: ""              # base64 PEM
 ```
 
 All three cert-manager template files are gated behind `{{- if .Values.certManager.enabled }}`. When disabled, no cert-manager CRDs, Secrets, or TLSStore resources are created — useful for standalone chart installs without cert-manager present.
@@ -105,14 +107,16 @@ New `certManager` block added under `spec.values`:
 ```yaml
 certManager:
   mode: 'repl{{ ConfigOption "tls_mode" }}'
-  acmeEmail: 'repl{{ ConfigOption "acme_email" }}'
-  cert: 'repl{{ ConfigOption "tls_cert" }}'
-  key: 'repl{{ ConfigOption "tls_key" }}'
-  dns01:
-    route53:
-      hostedZoneId: 'repl{{ ConfigOption "route53_hosted_zone_id" }}'
-      accessKeyId: 'repl{{ ConfigOption "route53_access_key_id" }}'
-      secretAccessKey: 'repl{{ ConfigOption "route53_secret_access_key" }}'
+  acme:
+    email: 'repl{{ ConfigOption "acme_email" }}'
+    dns01:
+      route53:
+        hostedZoneId: 'repl{{ ConfigOption "route53_hosted_zone_id" }}'
+        accessKeyId: 'repl{{ ConfigOption "route53_access_key_id" }}'
+        secretAccessKey: 'repl{{ ConfigOption "route53_secret_access_key" }}'
+  manual:
+    cert: 'repl{{ ConfigOption "tls_cert" }}'
+    key: 'repl{{ ConfigOption "tls_key" }}'
 ```
 
 Note: `certManager.enabled` is not set in `helmchart.yaml` — it defaults to `true` in `values.yaml` and is not user-configurable via KOTS (it's a chart-level deployment toggle, not an installer config option).
