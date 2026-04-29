@@ -37,4 +37,4 @@ jobs:
           context: .
           file: deploy/Dockerfile
           push: true
-          tags: ghcr.io/emosbaugh/playball.exe:${{ inputs.tag }}
+          tags: ghcr.io/replemos/playball.exe:${{ inputs.tag }}
