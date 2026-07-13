@@ -30,7 +30,7 @@ jobs:
       channel-slug: ${{ steps.channel.outputs.slug }}
       version: ${{ steps.create-release.outputs.version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Install Replicated CLI
         run: |
